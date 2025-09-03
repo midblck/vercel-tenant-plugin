@@ -1,6 +1,6 @@
 {
   "name": "@midblck/vercel-tenant-plugin",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A PayloadCMS v3 plugin to integrate with Vercel API and manage tenant projects",
   "license": "MIT",
   "keywords": [
