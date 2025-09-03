@@ -317,6 +317,7 @@ describe('VercelDataMapper', () => {
         status: 'approved',
         isActive: true,
         vercelTeamId: 'team-123',
+        vercelProjectId: 'project-123', // CRITICAL: This prevents hook from creating duplicate Vercel projects
         _syncOrigin: 'vercel-sync',
         // Should include all mapped Vercel data
         vercelProjectCreatedAt: '2022-01-01T00:00:00.000Z',
@@ -331,6 +332,7 @@ describe('VercelDataMapper', () => {
       const result = createNewTenantData(projectWithoutName, mockDomains)
 
       expect(result.name).toBe('Project project-123')
+      expect(result.vercelProjectId).toBe('project-123') // Should still set vercelProjectId
     })
   })
 })

@@ -2,12 +2,12 @@
 // VERCEL DATA MAPPING UTILITY - REFACTORED
 // ============================================================================
 
-import type { VercelProject } from '../types'
 import type {
   EnhancedVercelDomain,
   EnhancedVercelGitLink,
   EnhancedVercelProject,
   VercelCronDefinition,
+  VercelProject,
 } from '../types'
 
 /**
@@ -394,6 +394,9 @@ export function createNewTenantData(
 
     // Team ID
     vercelTeamId: project.teamId || teamId,
+
+    // CRITICAL: Set vercelProjectId to prevent hook from trying to create a new Vercel project
+    vercelProjectId: project.id,
 
     // Flag to prevent infinite loops when this tenant is updated later
     _syncOrigin: 'vercel-sync',

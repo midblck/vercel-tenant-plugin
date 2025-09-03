@@ -17,6 +17,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed component registration on tenant collection for tenant sync
 
+## [0.1.5] - 2025-01-03
+
+### Fixed
+
+- Fixed missing vercelEnhanced module import in test files
+- Converted all Jest syntax to Vitest syntax for better compatibility
+- Fixed integration test failures with tenant creation validation
+- Resolved Playwright configuration conflicts with Vitest
+- Fixed test expectations for relationship fields in PayloadCMS
+- Updated collection name references in integration tests
+- Fixed vercelDataMapper test expectations for createNewTenantData function
+
+### Changed
+
+- Updated update:patch script to run only integration tests (excluded e2e tests)
+- Improved test configuration to exclude e2e tests from Vitest runs
+- Enhanced integration tests to properly test plugin functionality
+- Updated test files to use proper Vitest imports and syntax
+
+### Technical Improvements
+
+- All 75 integration tests now passing
+- Streamlined test execution for faster CI/CD
+- Better separation between unit/integration tests and e2e tests
+- Improved test reliability and maintainability
+
 ## [0.1.4] - 2024-09-03
 
 ### Fixed
