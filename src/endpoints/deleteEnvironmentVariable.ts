@@ -37,7 +37,7 @@ export const deleteEnvironmentVariable: PayloadHandler = async (req) => {
     }
 
     // Get Vercel credentials
-    const { teamId: vercelTeamId, vercelToken } = getVercelCredentials()
+    const { teamId: vercelTeamId, vercelToken } = await getVercelCredentials(req.payload)
 
     if (!vercelToken) {
       return Response.json(
@@ -103,13 +103,15 @@ export const deleteEnvironmentVariablesDirect = async ({
   envVarIds,
   projectId,
   teamId,
+  payload,
 }: {
   envVarIds: string[]
   projectId: string
   teamId?: string
+  payload: any
 }) => {
   try {
-    const { teamId: vercelTeamId, vercelToken } = getVercelCredentials()
+    const { teamId: vercelTeamId, vercelToken } = await getVercelCredentials(payload)
 
     if (!vercelToken) {
       return {

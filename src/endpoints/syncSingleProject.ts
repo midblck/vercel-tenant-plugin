@@ -89,7 +89,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
       timestamp: new Date().toISOString(),
     })
 
-    const { teamId, vercelToken } = getVercelCredentials()
+    const { teamId, vercelToken } = await getVercelCredentials(req.payload)
     const payload = req.payload
 
     // Validate request parameters

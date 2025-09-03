@@ -8,7 +8,7 @@ import { getVercelCredentials } from './vercelUtils'
 export const cancelDeployments: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
     logger.deployment('Starting queued deployments cancellation...')
-    const { teamId, vercel } = getVercelCredentials()
+    const { teamId, vercel } = await getVercelCredentials(req.payload)
 
     // Safely parse request body, handling empty or malformed JSON
     let tenantId: string | undefined

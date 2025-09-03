@@ -1,6 +1,6 @@
 import type { CollectionSlug, Config } from 'payload'
 
-import { tenantCollection, tenantEnvironmentVariableCollection } from './collections'
+import { tenantCollection, tenantEnvironmentVariableCollection, tenantSetting } from './collections'
 import { tenantDeployment } from './collections/tenantDeployment'
 import {
   cancelDeployments,
@@ -20,7 +20,7 @@ import {
 import { getEnvironmentConfig, validateEnvironmentConfig } from './config/environment'
 
 // Export collections for direct import
-export { tenantCollection, tenantDeployment, tenantEnvironmentVariableCollection }
+export { tenantCollection, tenantDeployment, tenantEnvironmentVariableCollection, tenantSetting }
 
 // Export endpoint handlers for direct import
 export { createEnvironmentVariables, createNewTenant, listProjects, syncDeployments, syncProjects }
@@ -73,10 +73,17 @@ export const vercelTenantPlugin =
       config.collections = []
     }
 
+    if (!config.globals) {
+      config.globals = []
+    }
+
     // Add our tenant collections
     config.collections.push(tenantCollection)
     config.collections.push(tenantEnvironmentVariableCollection)
     config.collections.push(tenantDeployment)
+
+    // Add our tenant global settings
+    config.globals.push(tenantSetting)
 
     // Add relationship fields to specified collections
     if (pluginOptions.collections) {

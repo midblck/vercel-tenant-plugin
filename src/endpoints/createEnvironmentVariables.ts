@@ -90,7 +90,7 @@ export const createEnvironmentVariablesDirect = async ({
   tenantId: string
 }) => {
   try {
-    const { teamId, vercelToken } = getVercelCredentials()
+    const { teamId, vercelToken } = await getVercelCredentials(payload as any, tenantId)
 
     if (!vercelToken) {
       return {
@@ -280,7 +280,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
     const { existingDocId, existingEnvVars, tenantId } = body as CreateEnvVarsRequest
 
     const { payload } = req
-    const { teamId, vercelToken } = getVercelCredentials()
+    const { teamId, vercelToken } = await getVercelCredentials(payload as any)
     const { Vercel } = await import('@vercel/sdk')
     const vercel = new Vercel({ bearerToken: vercelToken })
 

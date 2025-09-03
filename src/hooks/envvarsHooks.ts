@@ -770,6 +770,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
               envVarIds,
               projectId: tenant.vercelProjectId,
               teamId: tenant.vercelTeamId,
+              payload: req.payload,
             })
 
             if (deleteResult.success) {

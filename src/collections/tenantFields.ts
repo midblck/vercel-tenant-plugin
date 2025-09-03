@@ -651,6 +651,27 @@ export const tenantFields: Field[] = [
       readOnly: true,
     },
   },
+
+  // Tenant Override Settings
+  {
+    name: 'vercelTokenOverride',
+    type: 'text',
+    admin: {
+      description:
+        'Override Vercel API token for this tenant (optional - uses global settings if empty)',
+      position: 'sidebar',
+    },
+  },
+  {
+    name: 'vercelTeamIdOverride',
+    type: 'text',
+    admin: {
+      description:
+        'Override Vercel team ID for this tenant (optional - uses global settings if empty)',
+      position: 'sidebar',
+    },
+  },
+
   {
     name: '_syncOrigin',
     type: 'text',

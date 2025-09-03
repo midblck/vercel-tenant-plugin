@@ -42,19 +42,18 @@ export const deploymentDeleteHook: CollectionBeforeDeleteHook = async ({ id, req
     }
 
     try {
-      // Import and call the delete deployment function
-      const { deleteDeployment } = await import('../endpoints/deleteDeployment')
+      // Import and call the cancel deployments function for queued deployments
+      const { cancelDeployments } = await import('../endpoints/cancelDeployments')
 
       const mockReq = {
         json: () =>
           Promise.resolve({
-            deploymentId: deploymentRecord.deploymentId,
-            // Don't delete the local record since we're already deleting it
+            tenantId: deploymentRecord.tenant,
           }),
         payload,
       } as any
 
-      await deleteDeployment(mockReq)
+      await cancelDeployments(mockReq)
     } catch (deleteError) {
       logger.error('Error deleting Vercel deployment', {
         deploymentId: deploymentRecord.deploymentId,
@@ -370,7 +369,7 @@ export const dashboardDeploymentRefreshHook: CollectionAfterChangeHook = ({ doc,
   }
 }
 
-export const dashboardDeploymentDeleteHook: CollectionAfterDeleteHook = ({ id, _req }) => {
+export const dashboardDeploymentDeleteHook: CollectionAfterDeleteHook = ({ id, req }) => {
   try {
     // Log the deletion for debugging
     logger.deployment(`Tenant deployment deleted: ${id}`)

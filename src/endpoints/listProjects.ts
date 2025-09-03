@@ -10,7 +10,7 @@ import { getVercelCredentials, transformVercelProject } from './vercelUtils'
 
 export const listProjects: PayloadHandler = async (_req) => {
   try {
-    const { teamId, vercelToken } = getVercelCredentials()
+    const { teamId, vercelToken } = await getVercelCredentials(_req.payload)
 
     // Debug: Log token info (without exposing the full token) - removed for production
 

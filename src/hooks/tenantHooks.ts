@@ -11,6 +11,12 @@ import { updateProjectCrons } from '../endpoints/vercelClient'
 import { getVercelCredentials } from '../endpoints/vercelUtils'
 import { logger } from '../utils/logger'
 
+// Type the function properly to avoid linter issues
+type GetVercelCredentials = (
+  payload: any,
+  tenantId?: string,
+) => Promise<{ teamId: string; vercel: any; vercelToken: string }>
+
 // Utility function to generate Vercel project URL (fallback) - REMOVED
 // Always use the actual vercelProjectUrl field for data reliability
 
@@ -79,7 +85,10 @@ export const afterChangeCronHook: CollectionAfterChangeHook = async ({
     }
 
     // Get Vercel credentials
-    const { teamId, vercelToken } = getVercelCredentials()
+    const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
+      req.payload,
+      doc.id,
+    )
 
     // Update cron status in Vercel (enabled = !currentDisableCron)
     await updateProjectCrons(
@@ -200,7 +209,10 @@ export const syncTenantToVercelHook: CollectionAfterChangeHook = ({
       const { updateVercelProjectComprehensive } = await import('../endpoints/vercelClient')
       const { getVercelCredentials } = await import('../endpoints/vercelUtils')
 
-      const { teamId, vercelToken } = getVercelCredentials()
+      const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
+        req.payload,
+        doc.id,
+      )
 
       if (!vercelToken) {
         logger.error('Vercel token not found, cannot update Vercel project', {
@@ -273,13 +285,15 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
   data,
   operation,
   originalDoc,
-  req, // eslint-disable-line @typescript-eslint/no-unused-vars
+  req,
 }) => {
   // Handle new tenant creation with approved status
   if (operation === 'create' && data?.status === 'approved' && !data?.vercelProjectId) {
     try {
       // Get Vercel credentials using utility function
-      const { teamId, vercelToken } = getVercelCredentials()
+      const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
+        req.payload,
+      )
 
       logger.info(`Creating Vercel project for tenant "${data.name}"`, { tenantName: data.name })
 
@@ -376,7 +390,10 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
   if (operation === 'update' && data?.status === 'approved' && originalDoc?.status === 'draft') {
     try {
       // Get Vercel credentials using utility function
-      const { teamId, vercelToken } = getVercelCredentials()
+      const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
+        req.payload,
+        originalDoc.id,
+      )
 
       // Check if tenant already has a Vercel project
       if (originalDoc.vercelProjectId) {
@@ -633,7 +650,10 @@ export const tenantBeforeDeleteHook: CollectionBeforeDeleteHook = async ({ id, r
   if (tenant.status === 'approved' && !tenant.isActive && tenant.vercelProjectId) {
     try {
       // Get Vercel credentials using utility function
-      const { teamId, vercelToken } = getVercelCredentials()
+      const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
+        req.payload,
+        String(tenant.id),
+      )
 
       // Delete Vercel project
       const { deleteVercelProject } = await import('../endpoints/vercelClient')
@@ -870,7 +890,7 @@ export const dashboardRefreshHook: CollectionAfterChangeHook = ({ doc, operation
   }
 }
 
-export const dashboardDeleteHook: CollectionAfterDeleteHook = ({ id, _req }) => {
+export const dashboardDeleteHook: CollectionAfterDeleteHook = ({ id }) => {
   try {
     // Log the deletion for debugging
     logger.tenant(`Tenant deleted: ${id}`)

@@ -13,7 +13,7 @@ import { createNewTenantData, updateExistingTenantData } from '../utils/vercelDa
 
 export const syncProjects: PayloadHandler = async (req) => {
   try {
-    const { teamId, vercelToken } = getVercelCredentials()
+    const { teamId, vercelToken } = await getVercelCredentials(req.payload)
 
     const result = await getVercelProjects({ teamId, vercelToken })
 

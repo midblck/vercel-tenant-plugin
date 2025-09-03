@@ -202,7 +202,7 @@ export const updateEnvironmentVariable: PayloadHandler = async (req) => {
     // PROCEED WITH UPDATE: We have a vercelId, so update existing variable
 
     // Get Vercel credentials
-    const { teamId, vercelToken } = getVercelCredentials()
+    const { teamId, vercelToken } = await getVercelCredentials(req.payload)
 
     // Generate secret if value is null/empty and type is encrypted
     let valueToSend = updates.value !== undefined ? updates.value : envVar.value

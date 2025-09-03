@@ -7,9 +7,9 @@ import { getVercelCredentials } from './vercelUtils'
 export const createDeployment: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
     logger.deployment('Starting deployment creation...')
-    const { teamId, vercel } = getVercelCredentials()
     const { deploymentData, tenantId } = (await req.json?.()) || {}
     const { payload } = req
+    const { teamId, vercel } = await getVercelCredentials(payload, tenantId)
 
     logger.deployment('Request params', { teamId, tenantId })
 

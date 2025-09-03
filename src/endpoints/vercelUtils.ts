@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Vercel } from '@vercel/sdk'
+import type { Payload } from 'payload'
 
 import type { TransformedVercelProject } from '../types'
+import { getConfig } from '../utils/tenantConfig'
 
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
 
-export const getVercelCredentials = () => {
-  // Environment check - removed console.log for production readiness
-  const vercelToken = process.env.VERCEL_TOKEN
-  const teamId = process.env.VERCEL_TEAM_ID
+export const getVercelCredentials = async (payload: Payload, tenantId?: string) => {
+  // Get configuration using new tenant config system
+  const config = await getConfig(payload, tenantId)
+  const { vercelTeamId, vercelToken } = config
 
   if (!vercelToken) {
     throw new Error(
-      'Vercel token not configured in backend. Please set VERCEL_TOKEN environment variable or configure the plugin with vercelToken option.',
+      'Vercel token not configured. Please set VERCEL_TOKEN environment variable, configure global tenant settings, or set tenant override.',
     )
   }
 
@@ -23,7 +25,7 @@ export const getVercelCredentials = () => {
     bearerToken: vercelToken,
   })
 
-  return { teamId, vercel, vercelToken }
+  return { teamId: vercelTeamId, vercel, vercelToken }
 }
 
 export const transformVercelProject = (project: any): TransformedVercelProject => {

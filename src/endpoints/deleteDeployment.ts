@@ -7,7 +7,7 @@ import { getVercelCredentials } from './vercelUtils'
 export const deleteDeployment: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
     logger.deployment('Starting deployment deletion...')
-    const { teamId, vercel } = getVercelCredentials()
+    const { teamId, vercel } = await getVercelCredentials(req.payload)
     const { deploymentId, tenantDeploymentId } = (await req.json?.()) || {}
     const { payload } = req
 

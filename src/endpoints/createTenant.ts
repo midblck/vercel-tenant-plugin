@@ -14,7 +14,7 @@ import { getVercelCredentials } from './vercelUtils'
 
 export const createNewTenant: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
-    const { teamId, vercelToken } = getVercelCredentials()
+    const { teamId, vercelToken } = await getVercelCredentials(req.payload)
     // const currentTimestamp = Date.now() // Unused variable
 
     // Get payload instance from request

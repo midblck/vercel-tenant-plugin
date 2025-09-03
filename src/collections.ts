@@ -1,2 +1,7 @@
 // Re-export collections from organized modules
-export { tenantCollection, tenantDeployment, tenantEnvironmentVariableCollection } from './collections/index'
+export {
+  tenantCollection,
+  tenantDeployment,
+  tenantEnvironmentVariableCollection,
+  tenantSetting,
+} from './collections/index'

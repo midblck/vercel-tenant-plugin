@@ -7,7 +7,7 @@ import { getVercelCredentials } from './vercelUtils'
 
 export const syncDeployments: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
-    const { teamId, vercel } = getVercelCredentials()
+    const { teamId, vercel } = await getVercelCredentials(req.payload)
     const { syncAll, tenantId } = (await req.json?.()) || {}
     const { payload } = req
 
