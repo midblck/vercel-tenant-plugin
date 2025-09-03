@@ -158,10 +158,10 @@ export const vercelTenantPlugin =
     }
 
     // Register SyncButton component for UI fields
-    adminComponents.fields.SyncButton = 'vercel-tenant-plugin/client#SyncButton'
+    adminComponents.fields.SyncButton = '@midblck/vercel-tenant-plugin/client#SyncButton'
 
     config.admin.components.beforeDashboard.push(
-      `vercel-tenant-plugin/client#BeforeDashboardClient`,
+      `@midblck/vercel-tenant-plugin/client#BeforeDashboardClient`,
     )
     // BeforeDashboardServer component removed - functionality integrated into BeforeDashboardClient
 
