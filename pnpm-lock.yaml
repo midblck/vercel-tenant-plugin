@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@midblck/vercel-tenant-plugin':
+        specifier: ^0.1.1
+        version: 0.1.1(payload@3.37.0(graphql@16.11.0)(typescript@5.7.3))
       '@vercel/sdk':
         specifier: ^1.10.6
         version: 1.10.6
@@ -1352,6 +1355,12 @@ packages:
     resolution: {integrity: sha512-7pJzOWzPm6oJUxml+PCDRzYQ4A1hTMHAciTAHfFK4fkbDZX33nWPVG7Y3vqdKtslcwAzwmrNDc6sXy2nwWnbiw==}
     cpu: [x64]
     os: [win32]
+
+  '@midblck/vercel-tenant-plugin@0.1.1':
+    resolution: {integrity: sha512-7pXIwjnJ1XxWzIeulaeoPT0T6kgPSW5i8TwY3/01EotmVN1Zky4lbUroq1QYqKL85dMZ7oadpyHpx1SgFRJj0A==}
+    engines: {node: ^18.20.2 || >=20.9.0, pnpm: ^9 || ^10}
+    peerDependencies:
+      payload: ^3.53.0
 
   '@monaco-editor/loader@1.5.0':
     resolution: {integrity: sha512-hKoGSM+7aAc7eRTRjpqAZucPmoNOC4UUbknb/VNoTkEIkCPhqV8LfbsgM1webRM7S/z21eHEx9Fkwx8Z/C/+Xw==}
@@ -3836,7 +3845,6 @@ packages:
 
   libsql@0.4.7:
     resolution: {integrity: sha512-T9eIRCs6b0J1SHKYIvD8+KCJMcWZ900iZyxdnSCdqxN12Z1ijzT+jY5nrk72Jw4B0HGzms2NgpryArlJqvc3Lw==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lines-and-columns@1.2.4:
@@ -6470,6 +6478,13 @@ snapshots:
 
   '@libsql/win32-x64-msvc@0.4.7':
     optional: true
+
+  '@midblck/vercel-tenant-plugin@0.1.1(payload@3.37.0(graphql@16.11.0)(typescript@5.7.3))':
+    dependencies:
+      '@vercel/sdk': 1.10.6
+      payload: 3.37.0(graphql@16.11.0)(typescript@5.7.3)
+    transitivePeerDependencies:
+      - '@modelcontextprotocol/sdk'
 
   '@monaco-editor/loader@1.5.0':
     dependencies:
