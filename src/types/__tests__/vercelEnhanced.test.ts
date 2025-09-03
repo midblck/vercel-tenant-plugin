@@ -2,11 +2,8 @@
 // VERCEL ENHANCED TYPES TESTS
 // ============================================================================
 
-import {
-  isEnhancedVercelDomain,
-  isEnhancedVercelGitLink,
-  isEnhancedVercelProject,
-} from '../vercelEnhanced'
+import { describe, it, expect } from 'vitest'
+import { isEnhancedVercelDomain, isEnhancedVercelGitLink, isEnhancedVercelProject } from '../vercel'
 
 describe('VercelEnhanced Type Guards', () => {
   describe('isEnhancedVercelProject', () => {

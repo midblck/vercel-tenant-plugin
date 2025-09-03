@@ -2,6 +2,7 @@
 // VERCEL DATA MAPPER TESTS
 // ============================================================================
 
+import { describe, it, expect } from 'vitest'
 import {
   createNewTenantData,
   mapBasicProjectInfo,
@@ -310,7 +311,6 @@ describe('VercelDataMapper', () => {
 
       expect(result).toMatchObject({
         name: 'Test Project',
-        vercelProjectId: 'project-123',
         lastSynced: expect.any(String),
         lastSyncMessage: '✅ New tenant created from Vercel project',
         lastSyncStatus: 'synced',

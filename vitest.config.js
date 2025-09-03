@@ -20,6 +20,15 @@ export default defineConfig(() => {
       environment: 'node',
       hookTimeout: 30_000,
       testTimeout: 30_000,
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/cypress/**',
+        '**/.{idea,git,cache,output,temp}/**',
+        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+        '**/e2e.spec.{ts,js}',
+        '**/*.e2e.{ts,js}',
+      ],
     },
   }
 })

@@ -2,6 +2,7 @@
 // RESPONSE HANDLER TESTS
 // ============================================================================
 
+import { describe, it, expect } from 'vitest'
 import {
   createSuccessResponse,
   createErrorResponse,

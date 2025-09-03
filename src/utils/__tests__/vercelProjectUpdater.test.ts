@@ -2,6 +2,7 @@
 // VERCEL PROJECT UPDATER TESTS
 // ============================================================================
 
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   buildProjectUpdateRequest,
   executeProjectUpdate,
@@ -11,11 +12,11 @@ import {
 } from '../vercelProjectUpdater'
 
 // Mock fetch for testing
-global.fetch = jest.fn()
+global.fetch = vi.fn()
 
 describe('VercelProjectUpdater', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('validateProjectUpdateData', () => {
@@ -38,7 +39,9 @@ describe('VercelProjectUpdater', () => {
 
     it('should throw error for missing tenant ID', () => {
       const invalidData = { name: 'Test Project' }
-      expect(() => validateProjectUpdateData(invalidData)).toThrow('Tenant ID is required for project updates')
+      expect(() => validateProjectUpdateData(invalidData)).toThrow(
+        'Tenant ID is required for project updates',
+      )
     })
   })
 
@@ -99,29 +102,26 @@ describe('VercelProjectUpdater', () => {
     it('should successfully execute project update', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().mockResolvedValue({ id: 'project-123', name: 'Test Project' }),
+        json: vi.fn().mockResolvedValue({ id: 'project-123', name: 'Test Project' }),
       }
-      ;(global.fetch as jest.Mock).mockResolvedValue(mockResponse)
+      ;(global.fetch as any).mockResolvedValue(mockResponse)
 
       const result = await executeProjectUpdate(
         'https://api.vercel.com/v9/projects/test',
         { buildCommand: 'npm run build' },
-        'test-token'
+        'test-token',
       )
 
       expect(result).toEqual({ id: 'project-123', name: 'Test Project' })
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://api.vercel.com/v9/projects/test',
-        {
-          body: JSON.stringify({ buildCommand: 'npm run build' }),
-          headers: {
-            Accept: '*/*',
-            Authorization: 'Bearer test-token',
-            'Content-Type': 'application/json; charset=utf-8',
-          },
-          method: 'PATCH',
-        }
-      )
+      expect(global.fetch).toHaveBeenCalledWith('https://api.vercel.com/v9/projects/test', {
+        body: JSON.stringify({ buildCommand: 'npm run build' }),
+        headers: {
+          Accept: '*/*',
+          Authorization: 'Bearer test-token',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        method: 'PATCH',
+      })
     })
 
     it('should throw error for failed response', async () => {
@@ -129,16 +129,16 @@ describe('VercelProjectUpdater', () => {
         ok: false,
         status: 400,
         statusText: 'Bad Request',
-        text: jest.fn().mockResolvedValue('Invalid request'),
+        text: vi.fn().mockResolvedValue('Invalid request'),
       }
-      ;(global.fetch as jest.Mock).mockResolvedValue(mockResponse)
+      ;(global.fetch as any).mockResolvedValue(mockResponse)
 
       await expect(
         executeProjectUpdate(
           'https://api.vercel.com/v9/projects/test',
           { buildCommand: 'npm run build' },
-          'test-token'
-        )
+          'test-token',
+        ),
       ).rejects.toThrow('HTTP 400: Invalid request')
     })
   })

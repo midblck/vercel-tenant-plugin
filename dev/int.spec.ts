@@ -9,7 +9,10 @@ import { customEndpointHandler } from '../src/endpoints/customEndpointHandler.js
 let payload: Payload
 
 afterAll(async () => {
-  await payload.destroy()
+  // Clean up payload instance
+  if (payload && typeof payload.destroy === 'function') {
+    await payload.destroy()
+  }
 })
 
 beforeAll(async () => {
@@ -32,21 +35,40 @@ describe('Plugin integration tests', () => {
     })
   })
 
-  test('can create post with custom text field added by plugin', async () => {
+  test('can create post with vercelTenant relationship field added by plugin', async () => {
+    // First create a tenant with a unique project ID
+    const uniqueProjectId = `test-project-${Date.now()}`
+    const tenant = await payload.create({
+      collection: 'tenant',
+      data: {
+        name: `Test Tenant ${Date.now()}`,
+        vercelProjectId: uniqueProjectId,
+        status: 'approved',
+        isActive: true,
+        vercelProjectGitRepository: {
+          type: 'github',
+          owner: 'test-owner',
+          repo: 'test-repo',
+          branch: 'main',
+        },
+      },
+    })
+
+    // Then create a post with the vercelTenant relationship
     const post = await payload.create({
       collection: 'posts',
       data: {
-        addedByPlugin: 'added by plugin',
+        vercelTenant: tenant.id,
       },
     })
-    expect(post.addedByPlugin).toBe('added by plugin')
+
+    // In PayloadCMS, relationship fields return the full object by default
+    expect(post.vercelTenant.id).toBe(tenant.id)
   })
 
-  test('plugin creates and seeds plugin-collection', async () => {
-    expect(payload.collections['plugin-collection']).toBeDefined()
-
-    const { docs } = await payload.find({ collection: 'plugin-collection' })
-
-    expect(docs).toHaveLength(1)
+  test('plugin creates tenant collection', async () => {
+    expect(payload.collections['tenant']).toBeDefined()
+    expect(payload.collections['tenant-envariable']).toBeDefined()
+    expect(payload.collections['tenant-deployment']).toBeDefined()
   })
 })

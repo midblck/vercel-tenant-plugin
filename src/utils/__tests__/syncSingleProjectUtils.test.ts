@@ -2,23 +2,21 @@
 // SYNC SINGLE PROJECT UTILITIES TESTS
 // ============================================================================
 
-import { getProjectDomains } from '../../endpoints/vercelClient'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { handleSyncResponse, validateSyncRequest } from '../syncSingleProjectUtils'
 
 // Mock dependencies
-jest.mock('../../endpoints/vercelClient')
-jest.mock('../logger', () => ({
+vi.mock('../../endpoints/vercelClient')
+vi.mock('../logger', () => ({
   logger: {
-    info: jest.fn(),
-    error: jest.fn(),
+    info: vi.fn(),
+    error: vi.fn(),
   },
 }))
 
-const mockGetProjectDomains = getProjectDomains as jest.MockedFunction<typeof getProjectDomains>
-
 describe('SyncSingleProjectUtils', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('validateSyncRequest', () => {

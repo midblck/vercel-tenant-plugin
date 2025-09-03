@@ -2,6 +2,7 @@
 // VERCEL ERROR HANDLER TESTS
 // ============================================================================
 
+import { describe, it, expect } from 'vitest'
 import { extractVercelErrorMessage, createVercelErrorResponse } from '../vercelErrorHandler'
 
 describe('VercelErrorHandler', () => {

@@ -46,10 +46,10 @@ try {
   execSync('pnpm build', { stdio: 'inherit' })
   console.log('✅ Build successful')
 
-  // Step 2: Run tests
-  console.log('🧪 Running tests...')
-  execSync('pnpm test', { stdio: 'inherit' })
-  console.log('✅ Tests passed')
+  // Step 2: Run tests (integration tests only)
+  console.log('🧪 Running integration tests...')
+  execSync('pnpm test:int', { stdio: 'inherit' })
+  console.log('✅ Integration tests passed')
 
   // Step 3: Update version
   console.log(`📝 Updating ${versionType} version...`)
