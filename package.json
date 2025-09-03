@@ -36,6 +36,11 @@
       "import": "./dist/exports/rsc.js",
       "types": "./dist/exports/rsc.d.ts",
       "default": "./dist/exports/rsc.js"
+    },
+    "./collections": {
+      "import": "./dist/exports/collections.js",
+      "types": "./dist/exports/collections.d.ts",
+      "default": "./dist/exports/collections.js"
     }
   },
   "main": "./dist/index.js",
@@ -128,6 +133,11 @@
         "import": "./dist/exports/rsc.js",
         "types": "./dist/exports/rsc.d.ts",
         "default": "./dist/exports/rsc.js"
+      },
+      "./collections": {
+        "import": "./dist/exports/collections.js",
+        "types": "./dist/exports/collections.d.ts",
+        "default": "./dist/exports/collections.js"
       }
     },
     "main": "./dist/index.js",

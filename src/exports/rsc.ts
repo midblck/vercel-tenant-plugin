@@ -1,3 +1,4 @@
 // RSC exports for server-side components
-// BeforeDashboardServer component removed - functionality integrated into BeforeDashboardClient
-// This file is kept for compatibility with the import map structure
+// Re-export client components for RSC compatibility
+export { BeforeDashboardClient } from '../components/BeforeDashboardClient'
+export { TenantSyncSection } from '../components/TenantSyncSection'
