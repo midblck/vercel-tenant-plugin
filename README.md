@@ -1,10 +1,12 @@
 # Vercel Tenant Plugin for Payload CMS
 
-[![npm version](https://badge.fury.io/js/@midblck/vercel-tenant-plugin.svg)](https://badge.fury.io/js/@midblck/vercel-tenant-plugin)
+[![npm version](https://img.shields.io/npm/v/@midblck/vercel-tenant-plugin.svg)](https://www.npmjs.com/package/@midblck/vercel-tenant-plugin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Payload CMS](https://img.shields.io/badge/Payload%20CMS-v3-blue.svg)](https://payloadcms.com)
 
 A comprehensive Payload CMS plugin that integrates with Vercel to manage multi-tenant projects, deployments, and environment variables with full lifecycle management.
+
+**📦 Published on NPM**: [@midblck/vercel-tenant-plugin](https://www.npmjs.com/package/@midblck/vercel-tenant-plugin)
 
 ## ✨ Features
 
@@ -237,6 +239,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
+- **NPM Package**: [@midblck/vercel-tenant-plugin](https://www.npmjs.com/package/@midblck/vercel-tenant-plugin)
 - **GitHub Issues**: [Report a bug or request a feature](https://github.com/midblck/vercel-tenant-plugin/issues)
 - **Documentation**: [Plugin Documentation](https://github.com/midblck/vercel-tenant-plugin#readme)
 - **Community**: [Payload CMS Discord](https://discord.gg/payloadcms)

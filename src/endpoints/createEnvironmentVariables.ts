@@ -160,7 +160,7 @@ export const createEnvironmentVariablesDirect = async ({
         const vercelEnvVar = {
           key: envVar.key,
           value: envVar.value,
-          type: envVar.type === 'encrypted' ? 'encrypted' : 'plain',
+          type: envVar.type === 'encrypted' ? ('encrypted' as const) : ('plain' as const),
           target: envVar.targets?.map((t) => t.target) || ['production', 'preview', 'development'],
           customEnvironmentIds: [], // Required field
         }
@@ -419,7 +419,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
 
           // Prepare request body for Vercel
           const requestBody = varsToCreate.map((envVar: EnvironmentVariableData) => ({
-            type: (envVar.type || 'plain') as 'encrypted' | 'plain',
+            type: envVar.type === 'encrypted' ? ('encrypted' as const) : ('plain' as const),
             comment: envVar.comment || '',
             key: envVar.key,
             target: ['production', 'preview', 'development'] as (
