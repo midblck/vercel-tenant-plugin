@@ -203,6 +203,41 @@ pnpm test:int      # Integration tests
 pnpm test:e2e      # End-to-end tests
 ```
 
+### Version Updates
+
+```bash
+pnpm update:patch  # Bug fixes (0.1.4 → 0.1.5)
+pnpm update:minor  # New features (0.1.4 → 0.2.0)
+pnpm update:major  # Breaking changes (0.1.4 → 1.0.0)
+pnpm version:check # Check current version
+```
+
+## 📋 Version Management
+
+This project follows [Semantic Versioning](https://semver.org/):
+
+- **Patch** (0.1.4 → 0.1.5): Bug fixes, small improvements
+- **Minor** (0.1.4 → 0.2.0): New features, backward-compatible changes
+- **Major** (0.1.4 → 1.0.0): Breaking changes, major API changes
+
+### Quick Update Commands
+
+```bash
+# Update patch version (bug fixes)
+pnpm update:patch
+
+# Update minor version (new features)
+pnpm update:minor
+
+# Update major version (breaking changes)
+pnpm update:major
+
+# Check current version
+pnpm version:check
+```
+
+For detailed version update instructions, see [VERSION_UPDATE_GUIDE.md](VERSION_UPDATE_GUIDE.md).
+
 ## 📚 API Reference
 
 ### Available Endpoints

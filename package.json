@@ -71,7 +71,11 @@
     "test": "pnpm test:int && pnpm test:e2e",
     "test:e2e": "playwright test",
     "test:int": "vitest",
-    "verify": "node scripts/verify-package.js"
+    "verify": "node scripts/verify-package.js",
+    "update:patch": "node scripts/update-version.js patch",
+    "update:minor": "node scripts/update-version.js minor",
+    "update:major": "node scripts/update-version.js major",
+    "version:check": "node scripts/update-version.js check"
   },
   "dependencies": {
     "@midblck/vercel-tenant-plugin": "^0.1.1",
