@@ -627,7 +627,7 @@ export const tenantFields: Field[] = [
     type: 'ui',
     admin: {
       components: {
-        Field: 'vercel-tenant-plugin/client#TenantSyncSection',
+        Field: '@midblck/vercel-tenant-plugin/client#TenantSyncSection',
       },
       position: 'sidebar',
     },
