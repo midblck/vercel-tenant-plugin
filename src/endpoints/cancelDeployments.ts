@@ -8,7 +8,18 @@ export const cancelDeployments: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
     logger.deployment('Starting queued deployments cancellation...')
     const { teamId, vercel } = getVercelCredentials()
-    const { tenantId } = (await req.json?.()) || {}
+
+    // Safely parse request body, handling empty or malformed JSON
+    let tenantId: string | undefined
+    try {
+      const body = await req.json?.()
+      tenantId = body?.tenantId
+    } catch (error) {
+      // If JSON parsing fails (empty body, malformed JSON), continue without tenantId
+      logger.deployment('No valid JSON body found, proceeding without tenantId filter')
+      tenantId = undefined
+    }
+
     const { payload } = req
 
     logger.deployment('Request params', { teamId, tenantId })
