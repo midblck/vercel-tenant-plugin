@@ -1,0 +1,558 @@
+/* Main container */
+.before-dashboard-container {
+  width: 100%;
+  /* max-width: 1200px; */
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.wrapper {
+  width: 100%;
+  background: var(--theme-elevation-0);
+  border-radius: 12px;
+  border: 1px solid var(--theme-elevation-150);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Header Section */
+.header {
+  background: linear-gradient(135deg, var(--color-blue-50) 0%, var(--color-blue-100) 100%);
+  border-bottom: 1px solid var(--theme-elevation-150);
+  padding: 24px 32px;
+  text-align: center;
+}
+
+.header .title {
+  color: var(--color-blue-900);
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-size: 28px;
+}
+
+.header .subtitle {
+  color: var(--color-blue-700);
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Combined Dashboard Section */
+.combinedDashboard {
+  padding: 16px;
+  background: var(--theme-elevation-0);
+  border-bottom: 1px solid var(--theme-elevation-150);
+  width: 100%;
+}
+
+.dashboardTitle {
+  color: var(--theme-elevation-900);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.combinedGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Medium to large screens: horizontal layout */
+@media (min-width: 768px) {
+  .combinedGrid {
+    flex-direction: row;
+    gap: 28px;
+    align-items: flex-start;
+    max-width: none;
+  }
+}
+
+.statusRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Medium to large screens: status cards in a column */
+@media (min-width: 768px) {
+  .statusRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    max-width: 200px;
+    margin: 0;
+    flex-shrink: 0;
+  }
+}
+
+.actionRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* Medium to large screens: action cards in a grid */
+@media (min-width: 768px) {
+  .actionRow {
+    flex: 1;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    min-width: 0; /* Allow flex item to shrink */
+  }
+}
+
+/* Large screens: 4 action cards in a row */
+@media (min-width: 1200px) {
+  .actionRow {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+.statusCard {
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.statusCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-blue-400), var(--color-green-400));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.statusCard:hover {
+  border-color: var(--theme-elevation-300);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.statusCard:hover::before {
+  opacity: 1;
+}
+
+.statusNumber {
+  color: var(--theme-elevation-900);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 0 4px 0;
+}
+
+.statusLabel {
+  color: var(--theme-elevation-600);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 6px 0;
+}
+
+.statusDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.statusDetail {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--theme-elevation-600);
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* API Status Card specific styling */
+.statusCard.apiStatus {
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-200);
+}
+
+.statusCard.apiStatus .statusNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--theme-elevation-900);
+}
+
+.statusCard.apiStatus .statusLabel {
+  color: var(--theme-elevation-600);
+  font-weight: 500;
+}
+
+.statusCard.apiStatus .statusDetails {
+  margin-top: 4px;
+}
+
+.statusCard.apiStatus .statusDetail {
+  font-weight: 500;
+}
+
+/* Refresh button styling */
+.refreshButton {
+  background: linear-gradient(135deg, var(--color-blue-600), var(--color-blue-700));
+  color: white;
+  border: 1px solid var(--color-blue-600);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  margin-top: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.refreshButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.4s ease;
+}
+
+.refreshButton:hover {
+  background: linear-gradient(135deg, var(--color-blue-700), var(--color-blue-800));
+  border-color: var(--color-blue-700);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.refreshButton:hover::before {
+  left: 100%;
+}
+
+.refreshButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.4);
+}
+
+/* Action Cards within Combined Dashboard */
+.actionsGrid {
+  display: contents;
+}
+
+.actionCard {
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 10px;
+  padding: 18px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.actionCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-blue-500), var(--color-purple-500));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Compact padding for medium screens */
+@media (min-width: 768px) and (max-width: 1200px) {
+  .actionCard {
+    padding: 16px;
+  }
+}
+
+.actionCard:hover {
+  border-color: var(--theme-elevation-300);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+}
+
+.actionCard:hover::before {
+  opacity: 1;
+}
+
+.actionHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* More compact header for medium screens */
+@media (min-width: 768px) and (max-width: 1200px) {
+  .actionHeader {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+}
+
+.actionIcon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: var(--color-blue-50);
+  border-radius: 8px;
+  color: var(--color-blue-600);
+  flex-shrink: 0;
+}
+
+/* Even more compact icon for medium screens */
+@media (min-width: 768px) and (max-width: 1200px) {
+  .actionIcon {
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
+  }
+}
+
+.actionInfo {
+  flex: 1;
+}
+
+.actionTitle {
+  color: var(--theme-elevation-900);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+}
+
+.actionDescription {
+  color: var(--theme-elevation-600);
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.actionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* More compact content for medium screens */
+@media (min-width: 768px) and (max-width: 1200px) {
+  .actionContent {
+    gap: 12px;
+  }
+}
+
+.actionButton {
+  width: 100%;
+  background: linear-gradient(135deg, var(--color-blue-600), var(--color-blue-700));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
+}
+
+.actionButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.actionButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-blue-700), var(--color-blue-800));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.actionButton:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.actionButton:active:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+}
+
+.actionButton:disabled {
+  background: var(--theme-elevation-300);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.redirectNote {
+  color: var(--theme-elevation-500);
+  font-size: 12px;
+  text-align: center;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Progress Section */
+.progressSection {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--theme-elevation-50);
+  border-radius: 8px;
+  border: 1px solid var(--theme-elevation-200);
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: var(--theme-elevation-200);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-blue-500);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.progressFill.error {
+  background: var(--color-red-500);
+}
+
+.progressFill.success {
+  background: var(--color-green-500);
+}
+
+.progressText {
+  color: var(--theme-elevation-600);
+  font-size: 12px;
+  text-align: center;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Message Styles */
+.message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.message--success {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+  border: 1px solid var(--color-success-200);
+}
+
+.message--error {
+  background: var(--color-error-50);
+  color: var(--color-error-700);
+  border: 1px solid var(--color-error-200);
+}
+
+.message--completed {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+  border: 1px solid var(--color-success-200);
+}
+
+/* Responsive Design */
+@media (max-width: 767px) {
+  .before-dashboard-container {
+    padding: 16px;
+  }
+
+  .header {
+    padding: 20px 24px;
+  }
+
+  .header .title {
+    font-size: 24px;
+  }
+
+  .combinedDashboard {
+    padding: 16px 20px;
+  }
+
+  .statusRow {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    max-width: none;
+    margin: 0 auto;
+  }
+
+  .actionRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .statusDetails {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .actionCard {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .before-dashboard-container {
+    padding: 12px;
+  }
+
+  .header {
+    padding: 16px 20px;
+  }
+
+  .combinedDashboard {
+    padding: 20px 16px;
+  }
+}
