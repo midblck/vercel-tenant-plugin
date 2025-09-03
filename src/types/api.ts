@@ -43,9 +43,12 @@ export interface ErrorResponse {
 // UNION TYPES
 // ============================================================================
 
+import type { SyncEnvironmentVariablesResponse } from './environment'
+import type { CreateTenantResponse, SyncProjectsResponse } from './tenant'
+
 export type VercelApiEndpointResponse =
-  | import('./tenant').CreateTenantResponse
+  | CreateTenantResponse
   | ErrorResponse
   | ListProjectsResponse
-  | import('./environment').SyncEnvironmentVariablesResponse
-  | import('./tenant').SyncProjectsResponse
+  | SyncEnvironmentVariablesResponse
+  | SyncProjectsResponse

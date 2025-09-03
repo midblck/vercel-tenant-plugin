@@ -1,11 +1,11 @@
 import type { PayloadHandler } from 'payload'
 
-import { getProjectDomains } from './vercelClient'
+// import { getProjectDomains } from './vercelClient' // Unused import
 import { getVercelCredentials } from './vercelUtils'
 import { logger } from '../utils/logger'
-import { mapVercelDataToTenant } from '../utils/vercelDataMapper'
+// import { mapVercelDataToTenant } from '../utils/vercelDataMapper' // Unused import
 import {
-  createTenantRecord,
+  // createTenantRecord, // Unused import
   fetchVercelProject,
   handleSyncResponse,
   transformProjectData,

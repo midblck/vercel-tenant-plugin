@@ -2,6 +2,8 @@
 // STANDARDIZED RESPONSE HANDLING
 // ============================================================================
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
  * Standard response interface for all Vercel API operations
  */

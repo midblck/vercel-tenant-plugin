@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   CollectionAfterChangeHook,
   CollectionAfterDeleteHook,
@@ -17,13 +18,13 @@ import { logger } from '../utils/logger'
 // Now uses proper domain priority logic for data reliability
 export const updateProjectUrlHook: CollectionBeforeChangeHook = ({
   data,
-  operation,
-  originalDoc,
-  req,
+  operation: _operation,
+  originalDoc: _originalDoc,
+  req: _req,
 }) => {
   // Only update vercelProjectUrl if we have project name but no URL
   if (
-    (operation === 'update' || operation === 'create') &&
+    (_operation === 'update' || _operation === 'create') &&
     data?.vercelProjectName &&
     !data?.vercelProjectUrl &&
     !data?.vercelProjectDomains?.length
@@ -45,7 +46,7 @@ export const updateProjectUrlHook: CollectionBeforeChangeHook = ({
 
 export const beforeChangeCronHook: CollectionBeforeChangeHook = ({
   data,
-  operation,
+  operation: _operation,
   originalDoc,
 }) => {
   // Store the original disableCron state for comparison in afterChange
@@ -121,7 +122,7 @@ export const afterChangeCronHook: CollectionAfterChangeHook = async ({
 }
 
 // NEW: Hook to sync tenant updates TO Vercel
-export const syncTenantToVercelHook: CollectionAfterChangeHook = async ({
+export const syncTenantToVercelHook: CollectionAfterChangeHook = ({
   doc,
   operation,
   previousDoc,
@@ -259,7 +260,11 @@ export const syncTenantToVercelHook: CollectionAfterChangeHook = async ({
 // MAIN TENANT HOOKS
 // ============================================================================
 
-export const tenantAfterChangeHook: CollectionAfterChangeHook = async ({ doc, operation, req }) => {
+export const tenantAfterChangeHook: CollectionAfterChangeHook = async ({
+  doc: _doc,
+  operation: _operation,
+  req: _req,
+}) => {
   // This hook is now simplified - Vercel project creation is handled in beforeChange
   // to avoid write conflicts during tenant creation
 }
@@ -268,24 +273,13 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
   data,
   operation,
   originalDoc,
-  req,
+  req, // eslint-disable-line @typescript-eslint/no-unused-vars
 }) => {
   // Handle new tenant creation with approved status
   if (operation === 'create' && data?.status === 'approved' && !data?.vercelProjectId) {
     try {
-      // Get Vercel credentials from environment
-      const vercelToken = process.env.VERCEL_TOKEN
-      const teamId = process.env.VERCEL_TEAM_ID
-
-      if (!vercelToken) {
-        logger.error('Vercel token not found, cannot create Vercel project', {
-          tenantName: data.name,
-        })
-        // Use APIError like the deletion hook for better frontend display
-        const { APIError } = await import('payload')
-        const errorMessage = 'VERCEL TOKEN NOT CONFIGURED: Please contact an administrator.'
-        throw new APIError(errorMessage, 500)
-      }
+      // Get Vercel credentials using utility function
+      const { teamId, vercelToken } = getVercelCredentials()
 
       logger.info(`Creating Vercel project for tenant "${data.name}"`, { tenantName: data.name })
 
@@ -381,19 +375,8 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
   // Handle status change from draft to approved
   if (operation === 'update' && data?.status === 'approved' && originalDoc?.status === 'draft') {
     try {
-      // Get Vercel credentials from environment
-      const vercelToken = process.env.VERCEL_TOKEN
-      const teamId = process.env.VERCEL_TEAM_ID
-
-      if (!vercelToken) {
-        logger.error('Vercel token not found, cannot create Vercel project', {
-          tenantName: originalDoc.name,
-        })
-        // Use APIError like the deletion hook for better frontend display
-        const { APIError } = await import('payload')
-        const errorMessage = 'VERCEL TOKEN NOT CONFIGURED: Please contact an administrator.'
-        throw new APIError(errorMessage, 500)
-      }
+      // Get Vercel credentials using utility function
+      const { teamId, vercelToken } = getVercelCredentials()
 
       // Check if tenant already has a Vercel project
       if (originalDoc.vercelProjectId) {
@@ -548,10 +531,10 @@ export const tenantBeforeValidateHook: CollectionBeforeValidateHook = async ({
         // Skip creation if project already exists
         throw new Error(`Project with ID ${data.vercelProjectId} already exists`)
       }
-    } catch (error) {
+    } catch (_error) {
       // If it's our custom error, re-throw it
-      if (error instanceof Error && error.message.includes('already exists')) {
-        throw error
+      if (_error instanceof Error && _error.message.includes('already exists')) {
+        throw _error
       }
       // For other errors (like connection issues), continue with creation
     }
@@ -630,7 +613,7 @@ export const tenantBeforeDeleteHook: CollectionBeforeDeleteHook = async ({ id, r
       tenantName: tenant.name,
       vercelProjectId: tenant.vercelProjectId,
     }
-  } catch (error) {
+  } catch (_error) {
     // Don't fail deletion if cleanup info collection fails
     ;(req as any).tenantCleanupInfo = {
       deploymentsCount: 0,
@@ -649,44 +632,35 @@ export const tenantBeforeDeleteHook: CollectionBeforeDeleteHook = async ({ id, r
   // This needs to happen before tenant deletion since we need the tenant data
   if (tenant.status === 'approved' && !tenant.isActive && tenant.vercelProjectId) {
     try {
-      // Get Vercel credentials from environment
-      const vercelToken = process.env.VERCEL_TOKEN
-      const teamId = process.env.VERCEL_TEAM_ID
+      // Get Vercel credentials using utility function
+      const { teamId, vercelToken } = getVercelCredentials()
 
-      if (!vercelToken) {
+      // Delete Vercel project
+      const { deleteVercelProject } = await import('../endpoints/vercelClient')
+
+      const deleteResult = await deleteVercelProject(
+        { teamId, vercelToken },
+        tenant.vercelProjectId,
+      )
+
+      if (deleteResult.success) {
+        // Update cleanup info to reflect Vercel project status
+        if ((req as any).tenantCleanupInfo) {
+          ;(req as any).tenantCleanupInfo.vercelProjectDeleted = true
+        }
+      } else {
         // Update cleanup info to reflect Vercel project status
         if ((req as any).tenantCleanupInfo) {
           ;(req as any).tenantCleanupInfo.vercelProjectDeleted = false
-          ;(req as any).tenantCleanupInfo.vercelProjectError = 'Vercel token not configured'
-        }
-      } else {
-        // Delete Vercel project
-        const { deleteVercelProject } = await import('../endpoints/vercelClient')
-
-        const deleteResult = await deleteVercelProject(
-          { teamId, vercelToken },
-          tenant.vercelProjectId,
-        )
-
-        if (deleteResult.success) {
-          // Update cleanup info to reflect Vercel project status
-          if ((req as any).tenantCleanupInfo) {
-            ;(req as any).tenantCleanupInfo.vercelProjectDeleted = true
-          }
-        } else {
-          // Update cleanup info to reflect Vercel project status
-          if ((req as any).tenantCleanupInfo) {
-            ;(req as any).tenantCleanupInfo.vercelProjectDeleted = false
-            ;(req as any).tenantCleanupInfo.vercelProjectError = deleteResult.error
-          }
+          ;(req as any).tenantCleanupInfo.vercelProjectError = deleteResult.error
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Update cleanup info to reflect Vercel project status
       if ((req as any).tenantCleanupInfo) {
         ;(req as any).tenantCleanupInfo.vercelProjectDeleted = false
         ;(req as any).tenantCleanupInfo.vercelProjectError =
-          error instanceof Error ? error.message : 'Unknown error'
+          _error instanceof Error ? _error.message : 'Unknown error'
       }
     }
   } else if (tenant.status === 'approved' && tenant.isActive) {
@@ -750,7 +724,7 @@ export const tenantAfterDeleteHook: CollectionAfterDeleteHook = async ({ id, req
 
         actualEnvVarsDeleted = envVarsResult.docs.length
       }
-    } catch (error) {
+    } catch (_error) {
       // Silently continue if cleanup fails
     }
 
@@ -778,7 +752,7 @@ export const tenantAfterDeleteHook: CollectionAfterDeleteHook = async ({ id, req
 
         actualDeploymentsDeleted = deploymentsResult.docs.length
       }
-    } catch (error) {
+    } catch (_error) {
       // Silently continue if cleanup fails
     }
 
@@ -800,7 +774,7 @@ export const tenantAfterDeleteHook: CollectionAfterDeleteHook = async ({ id, req
       // Store in request for potential frontend access
       ;(req as any).tenantCleanupResults = finalCleanupResults
     }
-  } catch (error) {
+  } catch (_error) {
     // Silently continue if cleanup fails
   }
 }
@@ -877,7 +851,7 @@ export function getCronUpdateResult(req: any): any {
  * Hook to trigger dashboard refresh when tenant data changes
  * This ensures the tenant status widget shows real-time data
  */
-export const dashboardRefreshHook: CollectionAfterChangeHook = async ({ doc, operation }) => {
+export const dashboardRefreshHook: CollectionAfterChangeHook = ({ doc, operation }) => {
   try {
     // Log the change for debugging
     logger.tenant(`Tenant ${operation}: ${doc.name || doc.id}`, {
@@ -896,7 +870,7 @@ export const dashboardRefreshHook: CollectionAfterChangeHook = async ({ doc, ope
   }
 }
 
-export const dashboardDeleteHook: CollectionAfterDeleteHook = async ({ id, req }) => {
+export const dashboardDeleteHook: CollectionAfterDeleteHook = ({ id, _req }) => {
   try {
     // Log the deletion for debugging
     logger.tenant(`Tenant deleted: ${id}`)

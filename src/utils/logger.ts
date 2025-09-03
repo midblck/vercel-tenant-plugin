@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/unbound-method */
 // ============================================================================
 // LOGGING SYSTEM WITH ENABLE/DISABLE FUNCTIONALITY
 // ============================================================================

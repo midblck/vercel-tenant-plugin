@@ -68,7 +68,7 @@ export const deleteEnvironmentVariable: PayloadHandler = async (req) => {
       throw new Error(`Vercel API error: ${response.status} ${response.statusText} - ${errorText}`)
     }
 
-    const result = await response.json()
+    const _result = await response.json()
 
     logger.envVars(`✅ Successfully deleted environment variable ${envVarId} from Vercel`, {
       envVarId,

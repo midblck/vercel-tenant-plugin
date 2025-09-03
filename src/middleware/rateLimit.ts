@@ -2,6 +2,7 @@
 // RATE LIMITING MIDDLEWARE
 // ============================================================================
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadRequest } from 'payload'
 
 // Payload-compatible request/response types
@@ -49,7 +50,7 @@ class RateLimiter {
     })
   }
 
-  private getKey(req: Request): string {
+  private getKey(_req: Request): string {
     // Use a simple key for Payload CMS
     return 'default'
   }

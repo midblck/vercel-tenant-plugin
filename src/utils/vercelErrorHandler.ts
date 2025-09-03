@@ -2,6 +2,8 @@
 // VERCEL ERROR HANDLING UTILITIES
 // ============================================================================
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
  * Extracts a user-friendly error message from Vercel API errors
  * Handles various error formats that Vercel API can return

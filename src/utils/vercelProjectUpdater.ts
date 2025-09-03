@@ -2,9 +2,10 @@
 // VERCEL PROJECT UPDATE UTILITIES
 // ============================================================================
 
-import type { VercelClientConfig } from '../types'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// import type { VercelClientConfig } from '../types' // Unused import
 
-import { createVercelErrorResponse } from './vercelErrorHandler'
+// import { createVercelErrorResponse } from './vercelErrorHandler' // Unused import
 import { createSuccessResponse } from './responseHandler'
 import { logger } from './logger'
 

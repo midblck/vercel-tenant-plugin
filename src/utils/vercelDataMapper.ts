@@ -7,7 +7,7 @@ import type {
   EnhancedVercelGitLink,
   EnhancedVercelProject,
   VercelCronDefinition,
-  VercelProject,
+  // VercelProject, // Unused import
 } from '../types'
 
 /**

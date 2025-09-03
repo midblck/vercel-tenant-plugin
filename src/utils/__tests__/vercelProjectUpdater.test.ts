@@ -2,7 +2,8 @@
 // VERCEL PROJECT UPDATER TESTS
 // ============================================================================
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   buildProjectUpdateRequest,
   executeProjectUpdate,
@@ -49,30 +50,30 @@ describe('VercelProjectUpdater', () => {
     it('should build request with all available fields', () => {
       const tenantData = {
         id: 'test-id',
-        buildCommand: 'npm run build',
-        devCommand: 'npm run dev',
-        installCommand: 'npm install',
-        outputDirectory: 'dist',
-        rootDirectory: 'src',
-        directoryListing: true,
-        publicSource: false,
         autoAssignCustomDomains: true,
         autoExposeSystemEnvs: false,
+        buildCommand: 'npm run build',
+        devCommand: 'npm run dev',
+        directoryListing: true,
+        installCommand: 'npm install',
+        outputDirectory: 'dist',
+        publicSource: false,
+        rootDirectory: 'src',
         trustedIps: ['192.168.1.1'],
       }
 
       const result = buildProjectUpdateRequest(tenantData)
 
       expect(result).toEqual({
-        buildCommand: 'npm run build',
-        devCommand: 'npm run dev',
-        installCommand: 'npm install',
-        outputDirectory: 'dist',
-        rootDirectory: 'src',
-        directoryListing: true,
-        publicSource: false,
         autoAssignCustomDomains: true,
         autoExposeSystemEnvs: false,
+        buildCommand: 'npm run build',
+        devCommand: 'npm run dev',
+        directoryListing: true,
+        installCommand: 'npm install',
+        outputDirectory: 'dist',
+        publicSource: false,
+        rootDirectory: 'src',
         trustedIps: ['192.168.1.1'],
       })
     })
@@ -101,8 +102,8 @@ describe('VercelProjectUpdater', () => {
   describe('executeProjectUpdate', () => {
     it('should successfully execute project update', async () => {
       const mockResponse = {
-        ok: true,
         json: vi.fn().mockResolvedValue({ id: 'project-123', name: 'Test Project' }),
+        ok: true,
       }
       ;(global.fetch as any).mockResolvedValue(mockResponse)
 
@@ -166,8 +167,8 @@ describe('VercelProjectUpdater', () => {
       const tenantData = {
         id: 'test-id',
         analytics: { enabled: true },
-        live: true,
         features: { v0: true },
+        live: true,
       }
       const projectId = 'project-123'
       const requestBody = { buildCommand: 'npm run build' }

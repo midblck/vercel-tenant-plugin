@@ -2,7 +2,7 @@
 // VERCEL ENHANCED TYPES TESTS
 // ============================================================================
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { isEnhancedVercelDomain, isEnhancedVercelGitLink, isEnhancedVercelProject } from '../vercel'
 
 describe('VercelEnhanced Type Guards', () => {
@@ -77,11 +77,11 @@ describe('VercelEnhanced Type Guards', () => {
     it('should return true for valid Vercel domain', () => {
       const validDomain = {
         name: 'example.com',
-        verified: true,
         apexName: 'example.com',
         createdAt: 1640995200000,
         projectId: 'project-123',
         updatedAt: 1640995200000,
+        verified: true,
       }
 
       expect(isEnhancedVercelDomain(validDomain)).toBe(true)
@@ -101,8 +101,8 @@ describe('VercelEnhanced Type Guards', () => {
 
     it('should return false for object without name', () => {
       const invalidDomain = {
-        verified: true,
         apexName: 'example.com',
+        verified: true,
       }
 
       expect(isEnhancedVercelDomain(invalidDomain)).toBe(false)
@@ -140,10 +140,10 @@ describe('VercelEnhanced Type Guards', () => {
     it('should return true for valid Vercel git link', () => {
       const validGitLink = {
         type: 'github',
-        repo: 'test-repo',
         branch: 'main',
         owner: 'test-owner',
         productionBranch: 'main',
+        repo: 'test-repo',
         repoId: 123,
         repoOwnerId: 456,
       }
@@ -165,9 +165,9 @@ describe('VercelEnhanced Type Guards', () => {
 
     it('should return false for object without type', () => {
       const invalidGitLink = {
-        repo: 'test-repo',
         branch: 'main',
         owner: 'test-owner',
+        repo: 'test-repo',
       }
 
       expect(isEnhancedVercelGitLink(invalidGitLink)).toBe(false)

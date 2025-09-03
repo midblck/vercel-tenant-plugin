@@ -20,6 +20,7 @@ export const defaultESLintIgnores = [
   '**/build/',
   '**/node_modules/',
   '**/temp/',
+  '**/_tests_/',
 ]
 
 export default [
@@ -37,7 +38,15 @@ export default [
         ecmaVersion: 'latest',
         projectService: {
           maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 40,
-          allowDefaultProject: ['scripts/*.ts', '*.js', '*.mjs', '*.spec.ts', '*.d.ts'],
+          allowDefaultProject: [
+            'scripts/*.ts',
+            '*.js',
+            '*.mjs',
+            '*.spec.ts',
+            '*.d.ts',
+            'src/types/__tests__/*.ts',
+            'src/utils/__tests__/*.ts',
+          ],
         },
         // Suppress TypeScript version warnings
         warnOnUnsupportedTypeScriptVersion: false,

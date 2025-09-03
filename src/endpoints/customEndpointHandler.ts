@@ -1,6 +1,6 @@
 import type { PayloadRequest } from 'payload'
 
-export const customEndpointHandler = async (req: PayloadRequest) => {
+export const customEndpointHandler = (_req: PayloadRequest) => {
   return new Response(
     JSON.stringify({
       message: 'Hello from custom endpoint',

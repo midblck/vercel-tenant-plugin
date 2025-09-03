@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed component registration on tenant collection for tenant sync
 
+## [0.1.7] - 2025-01-03
+
+### Fixed
+
+- Fixed "Unexpected end of JSON input" error in `cancelDeployments` endpoint when called with empty request body
+- Added proper error handling for JSON parsing in `cancelDeployments` endpoint to handle malformed or empty request bodies
+
 ## [0.1.5] - 2025-01-03
 
 ### Fixed

@@ -83,7 +83,7 @@ export const getVercelProjects = async (
 export const getProjectDomains = async (
   config: VercelClientConfig,
   projectId: string,
-): Promise<{ data: any | null; error: null | string; success: boolean }> => {
+): Promise<{ data: any; error: null | string; success: boolean }> => {
   try {
     const client = createVercelClient(config)
     const options: { teamId?: string } = {}

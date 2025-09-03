@@ -1,4 +1,5 @@
 /* eslint-disable perfectionist/sort-objects */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadHandler } from 'payload'
 
 import { getProjectDomains, getVercelProjects } from './vercelClient'

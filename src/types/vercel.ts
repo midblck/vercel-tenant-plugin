@@ -148,18 +148,18 @@ export type GetEnvironmentVariablesResponse = VercelApiResponse<VercelEnvironmen
 // ============================================================================
 
 export interface VercelAnalytics {
-  id?: string
-  enabled?: boolean
   [key: string]: unknown
+  enabled?: boolean
+  id?: string
 }
 
 export interface VercelFeatures {
-  [featureName: string]: boolean | string | number | object
+  [featureName: string]: boolean | number | object | string
 }
 
 export interface VercelGitComments {
-  onPullRequest?: boolean
   onCommit?: boolean
+  onPullRequest?: boolean
 }
 
 export interface VercelGitProviderOptions {
@@ -168,65 +168,65 @@ export interface VercelGitProviderOptions {
 }
 
 export interface VercelPasswordProtection {
+  [key: string]: unknown
   enabled?: boolean
   password?: string
-  [key: string]: unknown
 }
 
 export interface VercelResourceConfig {
+  [key: string]: unknown
   cpu?: string
   memory?: string
-  [key: string]: unknown
 }
 
 export interface VercelDeploymentExpiration {
-  enabled?: boolean
-  days?: number
   [key: string]: unknown
+  days?: number
+  enabled?: boolean
 }
 
 export interface VercelRollingRelease {
-  enabled?: boolean
   [key: string]: unknown
+  enabled?: boolean
 }
 
 export interface VercelSecurity {
-  enabled?: boolean
   [key: string]: unknown
+  enabled?: boolean
 }
 
 export interface VercelSpeedInsights {
-  enabled?: boolean
   [key: string]: unknown
+  enabled?: boolean
 }
 
 export interface VercelSSOProtection {
-  enabled?: boolean
   [key: string]: unknown
+  enabled?: boolean
 }
 
 export interface VercelTrustedIps {
+  [key: string]: unknown
   enabled?: boolean
   ips?: string[]
-  [key: string]: unknown
 }
 
 export interface VercelWebAnalytics {
-  enabled?: boolean
   [key: string]: unknown
+  enabled?: boolean
 }
 
 export interface VercelCustomEnvironment {
+  [key: string]: unknown
   id: string
   name: string
-  [key: string]: unknown
 }
 
 export interface VercelDeployHook {
+  [key: string]: unknown
   id: string
   name: string
   url: string
-  [key: string]: unknown
 }
 
 // Enhanced Vercel Project type that includes all fields we use in our mappers

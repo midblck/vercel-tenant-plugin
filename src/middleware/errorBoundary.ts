@@ -2,6 +2,7 @@
 // ERROR BOUNDARY MIDDLEWARE
 // ============================================================================
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadRequest } from 'payload'
 import { logger } from '../utils/logger'
 import { formatErrorResponse } from '../utils/errors'
@@ -21,7 +22,7 @@ export const errorBoundary = (
   error: ErrorWithStatus,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) => {
   // Log the error with context
   logger.error('Unhandled error in middleware', {

@@ -2,11 +2,11 @@
 // RESPONSE HANDLER TESTS
 // ============================================================================
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
-  createSuccessResponse,
   createErrorResponse,
   createErrorResponseFromError,
+  createSuccessResponse,
 } from '../responseHandler'
 
 describe('ResponseHandler', () => {

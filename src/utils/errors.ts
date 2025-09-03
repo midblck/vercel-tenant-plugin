@@ -2,6 +2,7 @@
 // ERROR HANDLING SYSTEM
 // ============================================================================
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { logger } from './logger'
 
 // Custom error classes that extend Error for Payload CMS compatibility

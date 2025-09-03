@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { CollectionAfterChangeHook, CollectionBeforeValidateHook } from 'payload'
 import { logger } from '../utils/logger'
-import type { EnvironmentVariableData, PayloadRequestWithUser, TenantData } from '../types'
+import type { EnvironmentVariableData, PayloadRequestWithUser } from '../types'
 
 // Simple flag to prevent multiple executions
 let isProcessing = false
@@ -11,7 +12,7 @@ let isProcessing = false
  * @param previousVars - Array of previous environment variables
  * @returns true if the variable has changed, false otherwise
  */
-function hasVariableChanged(
+function _hasVariableChanged(
   currentVar: EnvironmentVariableData,
   previousVars?: EnvironmentVariableData[],
 ): boolean {
@@ -178,7 +179,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
   // Only process create/update operations
   if (operation !== 'create' && operation !== 'update') {
-    logger.envVars(`⏭️ Skipping ${operation} operation - not a create/update`)
+    logger.envVars(`⏭️ Skipping ${String(operation)} operation - not a create/update`)
     cleanupDocLock()
     return
   }
@@ -872,7 +873,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
       // AUTO-DEPLOY LOGIC: Check if autodeploy is enabled and trigger deployment
       if (doc.autodeploy) {
-        const autoDeployTenantId = typeof doc.tenant === 'string' ? doc.tenant : doc.tenant?.id
+        const _autoDeployTenantId = typeof doc.tenant === 'string' ? doc.tenant : doc.tenant?.id
         try {
           logger.envVars('Autodeploy enabled, checking tenant status...')
 
@@ -899,7 +900,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
             // Use a small delay to ensure environment variables are fully saved
             setTimeout(async () => {
               try {
-                const deploymentRecord = await payload.create({
+                const _deploymentRecord = await payload.create({
                   collection: 'tenant-deployment',
                   data: {
                     environment: doc.environment || 'production',
@@ -1033,7 +1034,7 @@ export const envvarsBeforeValidateHook: CollectionBeforeValidateHook = async ({
       }
     }
   } catch (error) {
-    const errorTenantId = typeof data?.tenant === 'string' ? data.tenant : data?.tenant?.id
+    const _errorTenantId = typeof data?.tenant === 'string' ? data.tenant : data?.tenant?.id
     logger.error(
       `Error during validation: ${error instanceof Error ? error.message : String(error)}`,
     )

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadHandler } from 'payload'
 
 import { logger } from '../utils/logger'

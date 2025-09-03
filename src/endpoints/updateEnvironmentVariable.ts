@@ -1,4 +1,5 @@
 /* eslint-disable perfectionist/sort-objects */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadHandler } from 'payload'
 
 import { getVercelCredentials } from './vercelUtils'
@@ -148,7 +149,7 @@ export const updateEnvironmentVariable: PayloadHandler = async (req) => {
 
             if (updatedVar && updatedVar.vercelId) {
               // Update the database record with the new vercelId
-              const updatedEnvVars = record.envVars.map((env: any) => {
+              const _updatedEnvVars = record.envVars.map((env: any) => {
                 if (env.key === envVarKey) {
                   return {
                     ...env,

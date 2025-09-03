@@ -2,15 +2,15 @@
 // SYNC SINGLE PROJECT UTILITIES TESTS
 // ============================================================================
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { handleSyncResponse, validateSyncRequest } from '../syncSingleProjectUtils'
 
 // Mock dependencies
 vi.mock('../../endpoints/vercelClient')
 vi.mock('../logger', () => ({
   logger: {
-    info: vi.fn(),
     error: vi.fn(),
+    info: vi.fn(),
   },
 }))
 
@@ -22,8 +22,8 @@ describe('SyncSingleProjectUtils', () => {
   describe('validateSyncRequest', () => {
     it('should validate request with projectId in URL params', () => {
       const req = {
-        url: 'https://example.com/api/sync?projectId=project-123',
         body: {},
+        url: 'https://example.com/api/sync?projectId=project-123',
       }
 
       const result = validateSyncRequest(req)
@@ -35,8 +35,8 @@ describe('SyncSingleProjectUtils', () => {
 
     it('should validate request with projectId in body', () => {
       const req = {
-        url: 'https://example.com/api/sync',
         body: { projectId: 'project-123' },
+        url: 'https://example.com/api/sync',
       }
 
       const result = validateSyncRequest(req)
@@ -48,8 +48,8 @@ describe('SyncSingleProjectUtils', () => {
 
     it('should return error when projectId is missing', () => {
       const req = {
-        url: 'https://example.com/api/sync',
         body: {},
+        url: 'https://example.com/api/sync',
       }
 
       const result = validateSyncRequest(req)
@@ -73,8 +73,8 @@ describe('SyncSingleProjectUtils', () => {
 
     it('should prioritize URL params over body', () => {
       const req = {
-        url: 'https://example.com/api/sync?projectId=url-project-123',
         body: { projectId: 'body-project-123' },
+        url: 'https://example.com/api/sync?projectId=url-project-123',
       }
 
       const result = validateSyncRequest(req)

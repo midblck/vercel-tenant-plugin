@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadHandler } from 'payload'
 
 import { logger } from '../utils/logger'
@@ -14,7 +15,7 @@ export const cancelDeployments: PayloadHandler = async (req) => {
     try {
       const body = await req.json?.()
       tenantId = body?.tenantId
-    } catch (error) {
+    } catch (_error) {
       // If JSON parsing fails (empty body, malformed JSON), continue without tenantId
       logger.deployment('No valid JSON body found, proceeding without tenantId filter')
       tenantId = undefined

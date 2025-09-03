@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadHandler } from 'payload'
 
 import { logger } from '../utils/logger'
 import { withErrorHandling } from '../utils/errors'
 import type { CreateTenantRequest, EnhancedVercelProject } from '../types'
 
-import { createVercelProject, getProjectDomains, updateProjectCrons } from './vercelClient'
+import { createVercelProject, getProjectDomains } from './vercelClient'
 import { getVercelCredentials } from './vercelUtils'
 
 // ============================================================================
@@ -14,7 +15,7 @@ import { getVercelCredentials } from './vercelUtils'
 export const createNewTenant: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
     const { teamId, vercelToken } = getVercelCredentials()
-    const currentTimestamp = Date.now()
+    // const currentTimestamp = Date.now() // Unused variable
 
     // Get payload instance from request
     const payload = req.payload

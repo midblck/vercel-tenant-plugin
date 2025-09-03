@@ -2,8 +2,8 @@
 // VERCEL ERROR HANDLER TESTS
 // ============================================================================
 
-import { describe, it, expect } from 'vitest'
-import { extractVercelErrorMessage, createVercelErrorResponse } from '../vercelErrorHandler'
+import { describe, expect, it } from 'vitest'
+import { createVercelErrorResponse, extractVercelErrorMessage } from '../vercelErrorHandler'
 
 describe('VercelErrorHandler', () => {
   describe('extractVercelErrorMessage', () => {
@@ -33,8 +33,8 @@ describe('VercelErrorHandler', () => {
 
     it('should handle VercelBadRequestError format', () => {
       const error = {
-        statusCode: 400,
         message: 'Bad request',
+        statusCode: 400,
       }
 
       const result = extractVercelErrorMessage(error)

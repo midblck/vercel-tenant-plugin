@@ -3,153 +3,153 @@
 // ============================================================================
 
 // ============================================================================
-// VERCEL TYPES
-// ============================================================================
-export type {
-  // Core Vercel API Types
-  VercelProject,
-  VercelDomain,
-  VercelGitLink,
-  VercelDeployment,
-  VercelCronDefinition,
-  VercelCrons,
-  VercelEnvironmentVariable,
-  VercelClientConfig,
-  VercelEnvironment,
-  CreateProjectRequest,
-  VercelApiResponse,
-  GetProjectsResponse,
-  CreateProjectResponse,
-  GetEnvironmentVariablesResponse,
-
-  // Enhanced Vercel Types
-  VercelAnalytics,
-  VercelFeatures,
-  VercelGitComments,
-  VercelGitProviderOptions,
-  VercelPasswordProtection,
-  VercelResourceConfig,
-  VercelDeploymentExpiration,
-  VercelRollingRelease,
-  VercelSecurity,
-  VercelSpeedInsights,
-  VercelSSOProtection,
-  VercelTrustedIps,
-  VercelWebAnalytics,
-  VercelCustomEnvironment,
-  VercelDeployHook,
-  EnhancedVercelProject,
-  EnhancedVercelDomain,
-  EnhancedVercelGitLink,
-  EnhancedVercelCrons,
-} from './vercel'
-
-export {
-  // Type Guards
-  isEnhancedVercelProject,
-  isEnhancedVercelDomain,
-  isEnhancedVercelGitLink,
-} from './vercel'
-
-// ============================================================================
-// TENANT TYPES
-// ============================================================================
-export type {
-  TenantData,
-  CreateTenantRequest,
-  CreateTenantResponse,
-  TenantHookContext,
-  SyncResult,
-  SyncProjectsResponse,
-} from './tenant'
-
-// ============================================================================
-// ENVIRONMENT VARIABLE TYPES
-// ============================================================================
-export type {
-  EnvironmentVariableTarget,
-  EnvironmentVariableData,
-  ProcessedEnvironmentVariable,
-  CreateEnvVarsRequest,
-  CreateEnvVarsResponse,
-  EnvironmentVariableSyncResult,
-  SyncEnvironmentVariablesRequest,
-  SyncEnvironmentVariablesResponse,
-} from './environment'
-
-// ============================================================================
 // API TYPES
 // ============================================================================
 export type {
-  TransformedVercelProject,
-  ListProjectsResponse,
   ErrorResponse,
+  ListProjectsResponse,
+  TransformedVercelProject,
   VercelApiEndpointResponse,
+} from './api'
+
+export type {
+  ErrorResponse as ErrorResponseType,
+  ListProjectsResponse as ListProjectsResponseType,
+  // API types
+  TransformedVercelProject as TransformedVercelProjectType,
+  VercelApiEndpointResponse as VercelApiEndpointResponseType,
 } from './api'
 
 // ============================================================================
 // COMMON TYPES
 // ============================================================================
 export type {
-  PayloadRequestWithUser,
-  ValidationResult,
-  ValidationFunction,
-  ValidationSchema,
-  ErrorData,
-  VercelErrorResponse,
-  LogContext,
   DeepPartial,
+  ErrorData,
+  LogContext,
   NonNullable,
+  PayloadRequestWithUser,
+  ValidationFunction,
+  ValidationResult,
+  ValidationSchema,
+  VercelErrorResponse,
 } from './common'
+
+// ============================================================================
+// ENVIRONMENT VARIABLE TYPES
+// ============================================================================
+export type {
+  CreateEnvVarsRequest,
+  CreateEnvVarsResponse,
+  EnvironmentVariableData,
+  EnvironmentVariableSyncResult,
+  EnvironmentVariableTarget,
+  ProcessedEnvironmentVariable,
+  SyncEnvironmentVariablesRequest,
+  SyncEnvironmentVariablesResponse,
+} from './environment'
+
+export type {
+  CreateEnvVarsRequest as CreateEnvVarsRequestType,
+  CreateEnvVarsResponse as CreateEnvVarsResponseType,
+  EnvironmentVariableData as EnvironmentVariableDataType,
+  EnvironmentVariableSyncResult as EnvironmentVariableSyncResultType,
+  // Environment variable types
+  EnvironmentVariableTarget as EnvironmentVariableTargetType,
+  ProcessedEnvironmentVariable as ProcessedEnvironmentVariableType,
+  SyncEnvironmentVariablesRequest as SyncEnvironmentVariablesRequestType,
+  SyncEnvironmentVariablesResponse as SyncEnvironmentVariablesResponseType,
+} from './environment'
+
+// ============================================================================
+// TENANT TYPES
+// ============================================================================
+export type {
+  CreateTenantRequest,
+  CreateTenantResponse,
+  SyncProjectsResponse,
+  SyncResult,
+  TenantData,
+  TenantHookContext,
+} from './tenant'
+
+export type {
+  CreateTenantRequest as CreateTenantRequestType,
+  CreateTenantResponse as CreateTenantResponseType,
+  SyncProjectsResponse as SyncProjectsResponseType,
+  SyncResult as SyncResultType,
+  // Tenant types
+  TenantData as TenantDataType,
+  TenantHookContext as TenantHookContextType,
+} from './tenant'
+
+// ============================================================================
+// VERCEL TYPES
+// ============================================================================
+export type {
+  CreateProjectRequest,
+  CreateProjectResponse,
+  EnhancedVercelCrons,
+  EnhancedVercelDomain,
+  EnhancedVercelGitLink,
+  EnhancedVercelProject,
+  GetEnvironmentVariablesResponse,
+  GetProjectsResponse,
+  // Enhanced Vercel Types
+  VercelAnalytics,
+  VercelApiResponse,
+  VercelClientConfig,
+  VercelCronDefinition,
+  VercelCrons,
+  VercelCustomEnvironment,
+
+  VercelDeployHook,
+  VercelDeployment,
+  VercelDeploymentExpiration,
+  VercelDomain,
+  VercelEnvironment,
+  VercelEnvironmentVariable,
+  VercelFeatures,
+  VercelGitComments,
+  VercelGitLink,
+  VercelGitProviderOptions,
+  VercelPasswordProtection,
+  // Core Vercel API Types
+  VercelProject,
+  VercelResourceConfig,
+  VercelRollingRelease,
+  VercelSecurity,
+  VercelSpeedInsights,
+  VercelSSOProtection,
+  VercelTrustedIps,
+  VercelWebAnalytics,
+} from './vercel'
+
+export {
+  isEnhancedVercelDomain,
+  isEnhancedVercelGitLink,
+  // Type Guards
+  isEnhancedVercelProject,
+} from './vercel'
 
 // ============================================================================
 // RE-EXPORTS FOR BACKWARD COMPATIBILITY
 // ============================================================================
 // These exports maintain backward compatibility with existing imports
 export type {
-  // Vercel types (previously in vercelTypes.ts)
-  VercelProject as VercelProjectType,
-  VercelDomain as VercelDomainType,
-  VercelGitLink as VercelGitLinkType,
-  VercelDeployment as VercelDeploymentType,
-  VercelCronDefinition as VercelCronDefinitionType,
-  VercelCrons as VercelCronsType,
-  VercelEnvironmentVariable as VercelEnvironmentVariableType,
-  VercelClientConfig as VercelClientConfigType,
-  VercelEnvironment as VercelEnvironmentType,
   CreateProjectRequest as CreateProjectRequestType,
-  VercelApiResponse as VercelApiResponseType,
-  GetProjectsResponse as GetProjectsResponseType,
   CreateProjectResponse as CreateProjectResponseType,
   GetEnvironmentVariablesResponse as GetEnvironmentVariablesResponseType,
+  GetProjectsResponse as GetProjectsResponseType,
+  VercelApiResponse as VercelApiResponseType,
+  VercelClientConfig as VercelClientConfigType,
+  VercelCronDefinition as VercelCronDefinitionType,
+  VercelCrons as VercelCronsType,
+  VercelDeployment as VercelDeploymentType,
+  VercelDomain as VercelDomainType,
+  VercelEnvironment as VercelEnvironmentType,
+  VercelEnvironmentVariable as VercelEnvironmentVariableType,
+  VercelGitLink as VercelGitLinkType,
+  // Vercel types (previously in vercelTypes.ts)
+  VercelProject as VercelProjectType,
 } from './vercel'
-
-export type {
-  // Tenant types
-  TenantData as TenantDataType,
-  CreateTenantRequest as CreateTenantRequestType,
-  CreateTenantResponse as CreateTenantResponseType,
-  TenantHookContext as TenantHookContextType,
-  SyncResult as SyncResultType,
-  SyncProjectsResponse as SyncProjectsResponseType,
-} from './tenant'
-
-export type {
-  // Environment variable types
-  EnvironmentVariableTarget as EnvironmentVariableTargetType,
-  EnvironmentVariableData as EnvironmentVariableDataType,
-  ProcessedEnvironmentVariable as ProcessedEnvironmentVariableType,
-  CreateEnvVarsRequest as CreateEnvVarsRequestType,
-  CreateEnvVarsResponse as CreateEnvVarsResponseType,
-  EnvironmentVariableSyncResult as EnvironmentVariableSyncResultType,
-  SyncEnvironmentVariablesRequest as SyncEnvironmentVariablesRequestType,
-  SyncEnvironmentVariablesResponse as SyncEnvironmentVariablesResponseType,
-} from './environment'
-
-export type {
-  // API types
-  TransformedVercelProject as TransformedVercelProjectType,
-  ListProjectsResponse as ListProjectsResponseType,
-  ErrorResponse as ErrorResponseType,
-  VercelApiEndpointResponse as VercelApiEndpointResponseType,
-} from './api'

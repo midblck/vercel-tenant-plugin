@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadHandler } from 'payload'
 
 import { getVercelProjects } from './vercelClient'
@@ -7,7 +8,7 @@ import { getVercelCredentials, transformVercelProject } from './vercelUtils'
 // LIST PROJECTS ENDPOINT
 // ============================================================================
 
-export const listProjects: PayloadHandler = async (req) => {
+export const listProjects: PayloadHandler = async (_req) => {
   try {
     const { teamId, vercelToken } = getVercelCredentials()
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   CollectionAfterChangeHook,
   CollectionAfterDeleteHook,
@@ -349,10 +350,7 @@ export const deploymentTriggerHook: CollectionAfterChangeHook = async ({ doc, op
  * Hook to trigger dashboard refresh when tenant-deployment data changes
  * This ensures the deployment status widget shows real-time data
  */
-export const dashboardDeploymentRefreshHook: CollectionAfterChangeHook = async ({
-  doc,
-  operation,
-}) => {
+export const dashboardDeploymentRefreshHook: CollectionAfterChangeHook = ({ doc, operation }) => {
   try {
     // Log the change for debugging
     logger.deployment(`Tenant deployment ${operation}: ${doc.id}`, {
@@ -372,7 +370,7 @@ export const dashboardDeploymentRefreshHook: CollectionAfterChangeHook = async (
   }
 }
 
-export const dashboardDeploymentDeleteHook: CollectionAfterDeleteHook = async ({ id, req }) => {
+export const dashboardDeploymentDeleteHook: CollectionAfterDeleteHook = ({ id, _req }) => {
   try {
     // Log the deletion for debugging
     logger.deployment(`Tenant deployment deleted: ${id}`)

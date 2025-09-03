@@ -2,6 +2,7 @@
 // SIMPLE VALIDATION MIDDLEWARE (No external dependencies)
 // ============================================================================
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadRequest } from 'payload'
 import { logger } from '../utils/logger'
 
@@ -25,7 +26,7 @@ export const validators = {
     }
     return null
   },
-  teamId: (value: any): null | string => {
+  teamId: (_value: any): null | string => {
     // Optional field, no validation needed
     return null
   },
@@ -45,13 +46,13 @@ export const validators = {
 
 // Simple validation functions for common patterns
 export const validateRequest = {
-  listProjects: (data: any): string[] => {
+  listProjects: (_data: any): string[] => {
     const errors: string[] = []
     // Add validation logic as needed
     return errors
   },
 
-  syncProjects: (data: any): string[] => {
+  syncProjects: (_data: any): string[] => {
     const errors: string[] = []
     // Add validation logic as needed
     return errors
@@ -79,13 +80,13 @@ export const validateRequest = {
     return errors
   },
 
-  syncDeployments: (data: any): string[] => {
+  syncDeployments: (_data: any): string[] => {
     const errors: string[] = []
     // Add validation logic as needed
     return errors
   },
 
-  cancelDeployments: (data: any): string[] => {
+  cancelDeployments: (_data: any): string[] => {
     const errors: string[] = []
     // Add validation logic as needed
     return errors

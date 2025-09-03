@@ -2,6 +2,7 @@
 // SYNC SINGLE PROJECT UTILITIES
 // ============================================================================
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Payload, PayloadRequest } from 'payload'
 
 import { getProjectDomains } from '../endpoints/vercelClient'

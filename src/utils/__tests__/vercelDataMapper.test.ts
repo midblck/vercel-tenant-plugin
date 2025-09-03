@@ -2,51 +2,27 @@
 // VERCEL DATA MAPPER TESTS
 // ============================================================================
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   createNewTenantData,
   mapBasicProjectInfo,
   mapBuildConfiguration,
   mapCompleteVercelData,
   mapCronJobs,
-  mapDeploymentSettings,
+  // mapDeploymentSettings, // Unused import
   mapDomains,
   mapGitRepository,
   mapProjectSettings,
   mapVercelDataToTenant,
 } from '../vercelDataMapper'
-import type { EnhancedVercelProject, EnhancedVercelDomain } from '../../types'
+import type { EnhancedVercelDomain, EnhancedVercelProject } from '../../types'
 
 describe('VercelDataMapper', () => {
   const mockProject: EnhancedVercelProject = {
     id: 'project-123',
     name: 'Test Project',
-    createdAt: 1640995200000, // 2022-01-01
-    updatedAt: 1640995200000,
-    environment: 'production',
-    framework: 'nextjs',
     buildCommand: 'npm run build',
-    devCommand: 'npm run dev',
-    installCommand: 'npm install',
-    nodeVersion: '18.x',
-    outputDirectory: 'dist',
-    rootDirectory: 'src',
-    directoryListing: true,
-    features: { v0: true },
-    live: true,
-    paused: false,
-    publicSource: false,
-    tier: 'pro',
-    v0: true,
-    link: {
-      type: 'github',
-      branch: 'main',
-      owner: 'test-owner',
-      repo: 'test-repo',
-      repoId: 123,
-      repoOwnerId: 456,
-      productionBranch: 'main',
-    },
+    createdAt: 1640995200000, // 2022-01-01
     crons: {
       definitions: [
         {
@@ -60,25 +36,49 @@ describe('VercelDataMapper', () => {
       enabledAt: 1640995200000,
       updatedAt: 1640995200000,
     },
+    devCommand: 'npm run dev',
+    directoryListing: true,
+    environment: 'production',
+    features: { v0: true },
+    framework: 'nextjs',
+    installCommand: 'npm install',
+    link: {
+      type: 'github',
+      branch: 'main',
+      owner: 'test-owner',
+      productionBranch: 'main',
+      repo: 'test-repo',
+      repoId: 123,
+      repoOwnerId: 456,
+    },
+    live: true,
+    nodeVersion: '18.x',
+    outputDirectory: 'dist',
+    paused: false,
+    publicSource: false,
+    rootDirectory: 'src',
+    tier: 'pro',
+    updatedAt: 1640995200000,
     url: 'https://test-project.vercel.app',
+    v0: true,
   }
 
   const mockDomains: EnhancedVercelDomain[] = [
     {
       name: 'example.com',
-      verified: true,
       apexName: 'example.com',
       createdAt: 1640995200000,
       projectId: 'project-123',
       updatedAt: 1640995200000,
+      verified: true,
     },
     {
       name: 'www.example.com',
-      verified: false,
       apexName: 'example.com',
       createdAt: 1640995200000,
       projectId: 'project-123',
       updatedAt: 1640995200000,
+      verified: false,
     },
   ]
 
@@ -88,10 +88,10 @@ describe('VercelDataMapper', () => {
 
       expect(result).toEqual({
         vercelProjectCreatedAt: '2022-01-01T00:00:00.000Z',
-        vercelProjectStatus: 'READY',
-        vercelProjectUpdatedAt: '2022-01-01T00:00:00.000Z',
         vercelProjectEnvironment: 'production',
         vercelProjectFramework: 'nextjs',
+        vercelProjectStatus: 'READY',
+        vercelProjectUpdatedAt: '2022-01-01T00:00:00.000Z',
       })
     })
 
@@ -236,11 +236,9 @@ describe('VercelDataMapper', () => {
       const result = mapCompleteVercelData(mockProject, mockDomains, 'READY')
 
       expect(result.lastSyncData).toMatchObject({
-        environment: 'production',
-        framework: 'nextjs',
-        projectId: 'project-123',
-        projectName: 'Test Project',
-        status: 'READY',
+        buildCommand: 'npm run build',
+        createdAt: 1640995200000,
+        devCommand: 'npm run dev',
         domains: [
           {
             name: 'example.com',
@@ -259,13 +257,15 @@ describe('VercelDataMapper', () => {
             verified: false,
           },
         ],
-        buildCommand: 'npm run build',
-        devCommand: 'npm run dev',
+        environment: 'production',
+        framework: 'nextjs',
         installCommand: 'npm install',
         nodeVersion: '18.x',
         outputDirectory: 'dist',
+        projectId: 'project-123',
+        projectName: 'Test Project',
         rootDirectory: 'src',
-        createdAt: 1640995200000,
+        status: 'READY',
         syncedAt: expect.any(String),
         updatedAt: 1640995200000,
       })
@@ -278,29 +278,29 @@ describe('VercelDataMapper', () => {
 
       // Should include all mapped data
       expect(result).toMatchObject({
-        vercelProjectCreatedAt: '2022-01-01T00:00:00.000Z',
-        vercelProjectStatus: 'READY',
-        vercelProjectUpdatedAt: '2022-01-01T00:00:00.000Z',
-        vercelProjectEnvironment: 'production',
-        vercelProjectFramework: 'nextjs',
         buildCommand: 'npm run build',
         devCommand: 'npm run dev',
+        directoryListing: true,
         installCommand: 'npm install',
+        lastSyncData: expect.any(Object),
+        live: true,
         nodeVersion: '18.x',
         outputDirectory: 'dist',
-        rootDirectory: 'src',
-        directoryListing: true,
-        live: true,
         paused: false,
         publicSource: false,
+        rootDirectory: 'src',
         tier: 'pro',
         v0: true,
+        vercelProjectCreatedAt: '2022-01-01T00:00:00.000Z',
         vercelProjectDomains: [
           { domain: 'example.com', verified: true },
           { domain: 'www.example.com', verified: false },
         ],
+        vercelProjectEnvironment: 'production',
+        vercelProjectFramework: 'nextjs',
+        vercelProjectStatus: 'READY',
+        vercelProjectUpdatedAt: '2022-01-01T00:00:00.000Z',
         vercelProjectUrl: 'https://example.com',
-        lastSyncData: expect.any(Object),
       })
     })
   })
@@ -311,19 +311,19 @@ describe('VercelDataMapper', () => {
 
       expect(result).toMatchObject({
         name: 'Test Project',
+        _syncOrigin: 'vercel-sync',
+        isActive: true,
         lastSynced: expect.any(String),
         lastSyncMessage: '✅ New tenant created from Vercel project',
         lastSyncStatus: 'synced',
         status: 'approved',
-        isActive: true,
-        vercelTeamId: 'team-123',
         vercelProjectId: 'project-123', // CRITICAL: This prevents hook from creating duplicate Vercel projects
-        _syncOrigin: 'vercel-sync',
+        vercelTeamId: 'team-123',
         // Should include all mapped Vercel data
         vercelProjectCreatedAt: '2022-01-01T00:00:00.000Z',
-        vercelProjectStatus: 'unknown',
         vercelProjectEnvironment: 'production',
         vercelProjectFramework: 'nextjs',
+        vercelProjectStatus: 'unknown',
       })
     })
 
