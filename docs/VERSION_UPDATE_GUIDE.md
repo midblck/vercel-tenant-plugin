@@ -25,13 +25,17 @@ These commands automatically handle building, testing, versioning, publishing, a
 ## 📦 Current Package Status
 
 - **Package Name**: `@midblck/vercel-tenant-plugin`
-- **Current Version**: 0.1.4
-- **Total Versions**: 5 (0.1.0, 0.1.1, 0.1.2, 0.1.3, 0.1.4)
+- **Current Version**: 0.1.8
+- **Total Versions**: 9 (0.1.0, 0.1.1, 0.1.2, 0.1.3, 0.1.4, 0.1.5, 0.1.6, 0.1.7, 0.1.8)
 - **NPM Package**: https://www.npmjs.com/package/@midblck/vercel-tenant-plugin
 - **Repository**: https://github.com/midblck/vercel-tenant-plugin
 
 ### **Recent Updates**
 
+- **v0.1.8**: Fixed TypeScript errors in endpoints and hooks
+- **v0.1.7**: Fixed JSON parsing error in cancelDeployments endpoint
+- **v0.1.6**: Enhanced error handling and logging
+- **v0.1.5**: Improved deployment management features
 - **v0.1.4**: Fixed component registration to use scoped package name
 - **v0.1.3**: Fixed RSC exports and added collections export path
 - **v0.1.2**: Fixed package exports to point to built files
