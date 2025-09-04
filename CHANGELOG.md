@@ -17,6 +17,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed component registration on tenant collection for tenant sync
 
+## [0.1.9] - 2025-01-04
+
+### Fixed
+
+- Fixed logger scope issue in tenantCounts endpoint
+- Applied void pattern to all logger calls for better performance
+- Resolved TypeScript compilation errors in deploymentHooks
+- Fixed parameter ordering in deleteEnvironmentVariablesDirect function
+
+### Changed
+
+- Improved error handling and logging consistency across all endpoints
+- Enhanced code quality with proper void operator usage for logger calls
+- Removed unused req parameter from dashboardDeploymentDeleteHook
+
 ## [0.1.8] - 2025-01-04
 
 ### Fixed
