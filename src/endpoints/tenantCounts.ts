@@ -3,11 +3,12 @@ import type { PayloadRequest } from 'payload'
 import { createTenantAwareLogger } from '../utils/loggerInit'
 
 export const tenantCountsHandler = async (req: PayloadRequest) => {
+  const { payload } = req
+  
+  // Create tenant-aware logger
+  const logger = createTenantAwareLogger(payload)
+  
   try {
-    const { payload } = req
-
-    // Create tenant-aware logger
-    const logger = createTenantAwareLogger(payload)
 
     // Use Payload's count functions directly (server-side)
     const [totalCountResult, approvedCountResult, draftCountResult] = await Promise.all([
@@ -37,7 +38,7 @@ export const tenantCountsHandler = async (req: PayloadRequest) => {
     const approvedCount = approvedCountResult.totalDocs || 0
     const draftCount = draftCountResult.totalDocs || 0
 
-    logger.tenant('Tenant counts fetched successfully', {
+    void logger.tenant('Tenant counts fetched successfully', {
       approved: approvedCount,
       draft: draftCount,
       total: totalCount,
@@ -50,7 +51,7 @@ export const tenantCountsHandler = async (req: PayloadRequest) => {
       total: totalCount,
     })
   } catch (error) {
-    logger.error('Error fetching tenant counts', {
+    void logger.error('Error fetching tenant counts', {
       error: error instanceof Error ? error.message : String(error),
     })
 
