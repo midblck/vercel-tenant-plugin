@@ -6,8 +6,9 @@ import { withErrorHandling } from '../utils/errors'
 import { getVercelCredentials } from './vercelUtils'
 
 export const cancelDeployments: PayloadHandler = async (req) => {
-  return withErrorHandling(async () => {
-    logger.deployment('Starting queued deployments cancellation...')
+  return await withErrorHandling(async () => {
+    void logger.deployment('Starting queued deployments cancellation...')
+
     const { teamId, vercel } = await getVercelCredentials(req.payload)
 
     // Safely parse request body, handling empty or malformed JSON
@@ -17,13 +18,13 @@ export const cancelDeployments: PayloadHandler = async (req) => {
       tenantId = body?.tenantId
     } catch (_error) {
       // If JSON parsing fails (empty body, malformed JSON), continue without tenantId
-      logger.deployment('No valid JSON body found, proceeding without tenantId filter')
+      void logger.deployment('No valid JSON body found, proceeding without tenantId filter')
       tenantId = undefined
     }
 
     const { payload } = req
 
-    logger.deployment('Request params', { teamId, tenantId })
+    void logger.deployment('Request params', { teamId, tenantId })
 
     // Build query for queued deployments
     const query: any = {
@@ -41,7 +42,7 @@ export const cancelDeployments: PayloadHandler = async (req) => {
       where: query,
     })
 
-    logger.deployment(`Found ${queuedDeployments.docs.length} queued deployments`, {
+    void logger.deployment(`Found ${queuedDeployments.docs.length} queued deployments`, {
       count: queuedDeployments.docs.length,
     })
 
@@ -53,7 +54,7 @@ export const cancelDeployments: PayloadHandler = async (req) => {
     for (const deployment of queuedDeployments.docs) {
       try {
         if (deployment.deploymentId) {
-          logger.deployment(`Canceling deployment: ${deployment.deploymentId}`, {
+          void logger.deployment(`Canceling deployment: ${deployment.deploymentId}`, {
             deploymentId: deployment.deploymentId,
           })
 
@@ -63,7 +64,7 @@ export const cancelDeployments: PayloadHandler = async (req) => {
             teamId,
           })
 
-          logger.deployment(`Vercel deletion result`, { result: vercelResult })
+          void logger.deployment(`Vercel deletion result`, { result: vercelResult })
 
           // Delete local record
           await payload.delete({
@@ -92,7 +93,7 @@ export const cancelDeployments: PayloadHandler = async (req) => {
           successCount++
         }
       } catch (error) {
-        logger.error(`Error canceling deployment ${deployment.deploymentId}`, {
+        void logger.error(`Error canceling deployment ${deployment.deploymentId}`, {
           deploymentId: deployment.deploymentId,
           error: error instanceof Error ? error.message : String(error),
         })
@@ -109,7 +110,7 @@ export const cancelDeployments: PayloadHandler = async (req) => {
       ? `Canceled ${successCount} queued deployments for tenant, ${errorCount} errors`
       : `Canceled ${successCount} queued deployments across all tenants, ${errorCount} errors`
 
-    logger.deployment('Final result', {
+    void logger.deployment('Final result', {
       errorCount,
       message,
       successCount,

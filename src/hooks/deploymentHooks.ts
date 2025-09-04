@@ -55,14 +55,14 @@ export const deploymentDeleteHook: CollectionBeforeDeleteHook = async ({ id, req
 
       await cancelDeployments(mockReq)
     } catch (deleteError) {
-      logger.error('Error deleting Vercel deployment', {
+      void logger.error('Error deleting Vercel deployment', {
         deploymentId: deploymentRecord.deploymentId,
         error: deleteError instanceof Error ? deleteError.message : String(deleteError),
       })
       // Continue with local deletion even if Vercel deletion fails
     }
   } catch (error) {
-    logger.error('Error in deployment delete hook', {
+    void logger.error('Error in deployment delete hook', {
       error: error instanceof Error ? error.message : String(error),
     })
   }
@@ -160,7 +160,7 @@ export const deploymentTriggerHook: CollectionAfterChangeHook = async ({ doc, op
               })
             }
           } catch (updateError) {
-            logger.error('Error updating deployment record', {
+            void logger.error('Error updating deployment record', {
               error: updateError instanceof Error ? updateError.message : String(updateError),
             })
           }
@@ -193,14 +193,14 @@ export const deploymentTriggerHook: CollectionAfterChangeHook = async ({ doc, op
               })
             }
           } catch (updateError) {
-            logger.error('Error updating deployment record with error', {
+            void logger.error('Error updating deployment record with error', {
               error: updateError instanceof Error ? updateError.message : String(updateError),
             })
           }
         }, 2000) // Wait 2 seconds for the record to be fully saved
       }
     } catch (deploymentError) {
-      logger.error('Error triggering deployment', {
+      void logger.error('Error triggering deployment', {
         error: deploymentError instanceof Error ? deploymentError.message : String(deploymentError),
         tenantId,
       })
@@ -232,114 +232,18 @@ export const deploymentTriggerHook: CollectionAfterChangeHook = async ({ doc, op
             })
           }
         } catch (updateError) {
-          logger.error('Error updating deployment record with error', {
+          void logger.error('Error updating deployment record with error', {
             error: updateError instanceof Error ? updateError.message : String(updateError),
           })
         }
       }, 2000) // Wait 2 seconds for the record to be fully saved
     }
   } catch (error) {
-    logger.error('Error in deployment trigger hook', {
+    void logger.error('Error in deployment trigger hook', {
       error: error instanceof Error ? error.message : String(error),
     })
   }
 }
-
-// ============================================================================
-// ENVIRONMENT VARIABLES DEPLOYMENT HOOKS
-// ============================================================================
-
-/**
- * After-change hook for tenant environment variables collection
- * DISABLED: Deployment sync should only be manual via the "Deploy Sync" button
- * @param doc - The document that was changed
- * @param operation - The operation type (create or update)
- * @param req - The request object
- */
-// export const deploymentAfterChangeHook: CollectionAfterChangeHook = async ({
-//   doc,
-//   operation,
-//   previousDoc,
-//   req,
-// }) => {
-//   // Only proceed for update operations (when environment variables are modified)
-//   if (operation !== 'update') {
-//     return
-//   }
-
-//   try {
-//     const { payload } = req
-//     const tenantId = typeof doc.tenant === 'string' ? doc.tenant : doc.tenant?.id
-
-//     if (!tenantId) {
-//       return
-//     }
-
-//     // Get the tenant to check if it has approved status and isActive
-//     const tenant = await payload.findByID({
-//       id: tenantId,
-//       collection: 'tenant',
-//     })
-
-//     if (!tenant || tenant.status !== 'approved' || tenant.isActive !== true) {
-//       return
-//     }
-
-//     // Check if this update is just adding Vercel IDs (automatic system update)
-//     // If so, skip deployment sync as it's not a user-initiated change
-//     if (previousDoc && doc.envVars && previousDoc.envVars) {
-//       // Check if this is a system update (adding Vercel IDs or updating lastSynced)
-//       const isSystemUpdate =
-//         // Check if Vercel IDs were added
-//         doc.envVars.some((envVar: any, index: number) => {
-//           const previousEnvVar = previousDoc.envVars[index]
-//           return (
-//             previousEnvVar &&
-//             !previousEnvVar.vercelId &&
-//             envVar.vercelId &&
-//             envVar.vercelId.length > 0
-//           )
-//         }) ||
-//         // Check if lastSynced was updated (indicates system sync)
-//         (doc.lastSynced && previousDoc.lastSynced && doc.lastSynced !== previousDoc.lastSynced)
-
-//       // If this is a system update, skip deployment sync
-//       if (isSystemUpdate) {
-//         console.log(
-//           '[DEPLOYMENT] Skipping deployment sync - update is system-initiated (Vercel IDs or sync timestamp)',
-//         )
-//         return
-//       }
-//     }
-
-//     // Check if this is a user-initiated change by looking at the request context
-//     // If the request has a specific flag indicating it's from the envvars hook, skip
-//     if ((req as any).isFromEnvvarsHook) {
-//       console.log('[DEPLOYMENT] Skipping deployment sync - update is from envvars hook')
-//       return
-//       return
-//     }
-
-//     // Trigger deployment sync after a short delay to avoid conflicts
-//     setTimeout(async () => {
-//       try {
-//         // Import and call the sync deployments function
-//         const { syncDeployments } = await import('../endpoints/syncDeployments')
-
-//         const mockReq = {
-//           json: () => Promise.resolve({ tenantId }),
-//           payload,
-//         } as any
-
-//         await syncDeployments(mockReq)
-//       } catch (error) {
-//         console.error('[DEPLOYMENT] Error syncing deployments:', error)
-//       }
-//     }, 3000) // 3 second delay
-//   } catch (error) {
-//     console.error('[DEPLOYMENT] Error in deployment hook:', error)
-//   }
-// }
 
 // ============================================================================
 // DASHBOARD REFRESH HOOKS
@@ -352,7 +256,7 @@ export const deploymentTriggerHook: CollectionAfterChangeHook = async ({ doc, op
 export const dashboardDeploymentRefreshHook: CollectionAfterChangeHook = ({ doc, operation }) => {
   try {
     // Log the change for debugging
-    logger.deployment(`Tenant deployment ${operation}: ${doc.id}`, {
+    void logger.deployment(`Tenant deployment ${operation}: ${doc.id}`, {
       deploymentId: doc.id,
       operation,
       status: doc.status,
@@ -362,22 +266,22 @@ export const dashboardDeploymentRefreshHook: CollectionAfterChangeHook = ({ doc,
     // The frontend will automatically refresh deployment counts after sync operations
     // This hook ensures we log the changes for monitoring
   } catch (error) {
-    logger.error('Error in dashboard deployment refresh hook', {
+    void logger.error('Error in dashboard deployment refresh hook', {
       deploymentId: doc.id,
       error: error instanceof Error ? error.message : String(error),
     })
   }
 }
 
-export const dashboardDeploymentDeleteHook: CollectionAfterDeleteHook = ({ id, req }) => {
+export const dashboardDeploymentDeleteHook: CollectionAfterDeleteHook = ({ id }) => {
   try {
     // Log the deletion for debugging
-    logger.deployment(`Tenant deployment deleted: ${id}`)
+    void logger.deployment(`Tenant deployment deleted: ${id}`)
 
     // The frontend will automatically refresh deployment counts after sync operations
     // This hook ensures we log the changes for monitoring
   } catch (error) {
-    logger.error('Error in dashboard deployment delete hook', {
+    void logger.error('Error in dashboard deployment delete hook', {
       deploymentId: id,
       error: error instanceof Error ? error.message : String(error),
     })

@@ -102,7 +102,7 @@ export const BeforeDashboardClient = () => {
         })
       }
     } catch (error) {
-      logger.error('Error fetching counts', {
+      void logger.error('Error fetching counts', {
         error: error instanceof Error ? error.message : String(error),
       })
     }
@@ -152,7 +152,7 @@ export const BeforeDashboardClient = () => {
 
     try {
       const requestBody = { syncAll: true }
-      logger.info('Sync Projects Request', {
+      void logger.info('Sync Projects Request', {
         body: requestBody,
         url: `${serverURL}${routesAPI}/vercel/sync`,
       })
@@ -165,14 +165,14 @@ export const BeforeDashboardClient = () => {
         method: 'POST',
       })
 
-      logger.info('Sync Projects Response', {
+      void logger.info('Sync Projects Response', {
         ok: response.ok,
         status: response.status,
       })
 
       if (response.ok) {
         const result = await response.json()
-        logger.info('Sync Projects Success', result)
+        void logger.info('Sync Projects Success', result)
         setSyncResult(result)
 
         // Update progress with result data
@@ -204,7 +204,7 @@ export const BeforeDashboardClient = () => {
         }, AUTO_REFRESH_DELAY)
       } else {
         const errorData = await response.json()
-        logger.error('Sync Projects Error', errorData)
+        void logger.error('Sync Projects Error', errorData)
         let errorMessage = errorData.error || 'Failed to sync projects'
 
         // Check for specific error types
@@ -221,7 +221,7 @@ export const BeforeDashboardClient = () => {
         })
       }
     } catch (error) {
-      logger.error('Sync Projects Exception', {
+      void logger.error('Sync Projects Exception', {
         error: error instanceof Error ? error.message : String(error),
       })
       // Enhanced error handling with user-friendly messages
@@ -259,7 +259,7 @@ export const BeforeDashboardClient = () => {
       const requestBody = { syncAll: true }
       const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || serverURL
 
-      logger.info('Sync Deployments Request', {
+      void logger.info('Sync Deployments Request', {
         body: requestBody,
         url: `${serverUrl}${routesAPI}/vercel/sync-deployments`,
       })
@@ -272,14 +272,14 @@ export const BeforeDashboardClient = () => {
         method: 'POST',
       })
 
-      logger.info('Sync Deployments Response', {
+      void logger.info('Sync Deployments Response', {
         ok: response.ok,
         status: response.status,
       })
 
       if (response.ok) {
         const result = await response.json()
-        logger.info('Sync Deployments Success', result)
+        void logger.info('Sync Deployments Success', result)
 
         // Update progress with result data
         if (result.progress) {
@@ -324,7 +324,7 @@ export const BeforeDashboardClient = () => {
         }, AUTO_REFRESH_DELAY)
       } else {
         const errorData = await response.json()
-        logger.error('Sync Deployments Error', errorData)
+        void logger.error('Sync Deployments Error', errorData)
         let errorMessage = errorData.error || 'Failed to sync deployments'
 
         // Check for specific error types
@@ -341,7 +341,7 @@ export const BeforeDashboardClient = () => {
         })
       }
     } catch (error) {
-      logger.error('Sync Deployments Exception', {
+      void logger.error('Sync Deployments Exception', {
         error: error instanceof Error ? error.message : String(error),
       })
       setSyncDeploymentMessage(`❌ Error: ${ERROR_MESSAGES.CONNECTION_FAILED}`)
@@ -459,7 +459,7 @@ export const BeforeDashboardClient = () => {
                   <div className={styles.statusDetail}>{getVercelApiStatusText()}</div>
                   <button
                     className={styles.refreshButton}
-                    onClick={checkVercelApiStatus}
+                    onClick={() => void checkVercelApiStatus()}
                     type="button"
                   >
                     Refresh

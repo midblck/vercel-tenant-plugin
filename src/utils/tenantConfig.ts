@@ -30,7 +30,7 @@ export async function getGlobalConfig(payload: Payload): Promise<TenantConfig> {
     }
   } catch (error) {
     // If global doesn't exist or error occurs, fall back to environment
-    logger.warn('Failed to load global tenant settings, using environment variables:', {
+    void logger.warn('Failed to load global tenant settings, using environment variables:', {
       error: error instanceof Error ? error.message : String(error),
     })
   }
@@ -71,7 +71,7 @@ export async function getTenantConfig(tenantId: string, payload: Payload): Promi
       vercelToken: tenant.vercelTokenOverride || globalConfig.vercelToken,
     }
   } catch (error) {
-    logger.warn(`Failed to load tenant config for ${tenantId}, using global settings:`, {
+    void logger.warn(`Failed to load tenant config for ${tenantId}, using global settings:`, {
       error: error instanceof Error ? error.message : String(error),
       tenantId,
     })

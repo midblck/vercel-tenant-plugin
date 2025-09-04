@@ -34,7 +34,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
 
   try {
     // Step 1: Execute Vercel action (update, create, etc.)
-    logger.info('🚀 Starting Vercel workflow execution', {
+    void logger.info('🚀 Starting Vercel workflow execution', {
       actionType: vercelAction.name || 'anonymous',
       payloadAvailable: !!payload,
       projectId,
@@ -45,7 +45,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
       workflowId: `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     })
 
-    logger.debug('📋 Vercel action details', {
+    void logger.debug('📋 Vercel action details', {
       actionType: vercelAction.name || 'anonymous',
       payloadAvailable: !!payload,
       projectId,
@@ -54,7 +54,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
     })
 
     // Execute the Vercel action with detailed logging
-    logger.info('⚡ Executing Vercel action...', {
+    void logger.info('⚡ Executing Vercel action...', {
       projectId,
       startTime: new Date().toISOString(),
       step: 'vercel-action-execute',
@@ -65,7 +65,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
     const vercelResult = await vercelAction()
     const executionTime = Date.now() - startTime
 
-    logger.info('✅ Vercel action execution completed', {
+    void logger.info('✅ Vercel action execution completed', {
       dataKeys: vercelResult.data ? Object.keys(vercelResult.data) : [],
       executionTimeMs: executionTime,
       hasData: !!vercelResult.data,
@@ -77,7 +77,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
     })
 
     if (!vercelResult.success) {
-      logger.error('❌ Vercel action failed', {
+      void logger.error('❌ Vercel action failed', {
         error: vercelResult.error || 'Unknown error',
         executionTimeMs: executionTime,
         projectId,
@@ -88,7 +88,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
       throw new Error(`Vercel action failed: ${vercelResult.error || 'Unknown error'}`)
     }
 
-    logger.info('🎯 Vercel action completed successfully', {
+    void logger.info('🎯 Vercel action completed successfully', {
       executionTimeMs: executionTime,
       projectId,
       resultSummary: vercelResult.data
@@ -108,7 +108,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
 
     // Step 2: Sync data back from Vercel (optional)
     if (syncAfterVercel) {
-      logger.info('🔄 Starting sync process after Vercel action', {
+      void logger.info('🔄 Starting sync process after Vercel action', {
         projectId,
         step: 'sync-start',
         syncReason: 'Post-vercel-action-sync',
@@ -117,7 +117,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
       })
 
       // Import and call syncSingleProject
-      logger.debug('📦 Importing syncSingleProject module', {
+      void logger.debug('📦 Importing syncSingleProject module', {
         projectId,
         step: 'sync-import',
         tenantId,
@@ -127,7 +127,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
       const { syncSingleProject } = await import('../endpoints/syncSingleProject')
 
       // Create mock request for syncSingleProject
-      logger.debug('🔧 Creating mock request for syncSingleProject', {
+      void logger.debug('🔧 Creating mock request for syncSingleProject', {
         hasPayload: !!payload,
         projectId,
         requestUrl: `/api/sync-single-project?projectId=${projectId}`,
@@ -142,7 +142,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
         url: `/api/sync-single-project?projectId=${projectId}`,
       } as any
 
-      logger.info('🚀 Executing syncSingleProject...', {
+      void logger.info('🚀 Executing syncSingleProject...', {
         projectId,
         startTime: new Date().toISOString(),
         step: 'sync-execute',
@@ -153,7 +153,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
       const syncResult = await syncSingleProject(mockReq)
       const syncExecutionTime = Date.now() - syncStartTime
 
-      logger.info('📊 Sync execution completed', {
+      void logger.info('📊 Sync execution completed', {
         hasJson: typeof syncResult.json === 'function',
         projectId,
         responseOk: syncResult.ok,
@@ -165,7 +165,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
       })
 
       if (syncResult.status === 200) {
-        logger.debug('📥 Processing successful sync response', {
+        void logger.debug('📥 Processing successful sync response', {
           projectId,
           step: 'sync-response-process',
           tenantId,
@@ -174,7 +174,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
 
         const responseData = await syncResult.json()
 
-        logger.debug('📋 Sync response data received', {
+        void logger.debug('📋 Sync response data received', {
           hasSuccess: 'success' in responseData,
           projectId,
           responseKeys: responseData ? Object.keys(responseData) : [],
@@ -185,7 +185,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
         })
 
         if (responseData.success) {
-          logger.info('✅ Sync completed successfully after Vercel action', {
+          void logger.info('✅ Sync completed successfully after Vercel action', {
             projectId,
             responseSummary: {
               dataKeys: responseData.data ? Object.keys(responseData.data) : [],
@@ -200,7 +200,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
             timestamp: new Date().toISOString(),
           })
         } else {
-          logger.warn('⚠️ Sync failed after Vercel action', {
+          void logger.warn('⚠️ Sync failed after Vercel action', {
             error: responseData.error,
             projectId,
             responseData,
@@ -211,7 +211,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
           })
         }
       } else {
-        logger.warn('⚠️ Sync returned error status after Vercel action', {
+        void logger.warn('⚠️ Sync returned error status after Vercel action', {
           ok: syncResult.ok,
           projectId,
           status: syncResult.status,
@@ -223,7 +223,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
         })
       }
     } else {
-      logger.info('⏭️ Skipping sync after Vercel action (syncAfterVercel: false)', {
+      void logger.info('⏭️ Skipping sync after Vercel action (syncAfterVercel: false)', {
         projectId,
         step: 'sync-skipped',
         tenantId,
@@ -241,7 +241,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
       vercelResult,
     }
   } catch (error) {
-    logger.error('Vercel workflow failed', {
+    void logger.error('Vercel workflow failed', {
       error: error instanceof Error ? error.message : String(error),
       projectId,
       step: 'workflow-error',
@@ -266,7 +266,7 @@ export async function executeVercelWorkflow(options: VercelWorkflowOptions) {
         },
       })
     } catch (updateError) {
-      logger.error('Failed to update tenant with workflow error', {
+      void logger.error('Failed to update tenant with workflow error', {
         error: updateError instanceof Error ? updateError.message : String(updateError),
         tenantId,
       })

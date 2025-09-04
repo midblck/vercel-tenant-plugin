@@ -89,13 +89,13 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
   // Skip processing if this is a sync operation (prevents infinite loops)
   // Skip if _skipHooks is true OR if this is a system-initiated operation
   if (doc._skipHooks === true) {
-    logger.envVars(`⏭️ Skipping hook processing - sync operation detected (_skipHooks=true)`)
+    void logger.envVars(`⏭️ Skipping hook processing - sync operation detected (_skipHooks=true)`)
     return
   }
 
   // Additional check: Skip if this is a system operation (no user context or specific system flags)
   if (req.user === undefined || (req as PayloadRequestWithUser).isSystemOperation === true) {
-    logger.envVars(`⏭️ Skipping hook processing - system operation detected`)
+    void logger.envVars(`⏭️ Skipping hook processing - system operation detected`)
     return
   }
 
@@ -106,7 +106,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
   const now = Date.now()
 
   if (lastUpdateTime && now - lastUpdateTime < 1000) {
-    logger.envVars(
+    void logger.envVars(
       `⏭️ Skipping hook processing - rapid update detected (${now - lastUpdateTime}ms ago)`,
     )
     return
@@ -120,14 +120,14 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
   // Prevent multiple executions and add document lock
   if (isProcessing) {
-    logger.envVars(`Hook already processing, skipping...`)
+    void logger.envVars(`Hook already processing, skipping...`)
     return
   }
 
   // Add document-level processing lock to prevent concurrent updates
   const docLockKey = `envvars_processing_${doc.id}`
   if (global.rapidUpdateCache?.[docLockKey]) {
-    logger.envVars(`Document ${doc.id} already being processed, skipping...`)
+    void logger.envVars(`Document ${doc.id} already being processed, skipping...`)
     return
   }
   if (!global.rapidUpdateCache) {
@@ -142,7 +142,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
       delete global.rapidUpdateCache[operationLockKey]
     }
     // Note: finalUpdateKey is cleaned up in the setTimeout callback
-    logger.envVars(`🔓 Document and operation locks cleaned up for ${doc.id}`)
+    void logger.envVars(`🔓 Document and operation locks cleaned up for ${doc.id}`)
   }
 
   // Helper function to clean up rapid update marker after a delay
@@ -151,14 +151,16 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
       if (global.rapidUpdateCache) {
         delete global.rapidUpdateCache[rapidUpdateKey]
       }
-      logger.envVars(`🔓 Rapid update marker cleaned up for ${doc.id}`)
+      void logger.envVars(`🔓 Rapid update marker cleaned up for ${doc.id}`)
     }, 2000) // Clean up after 2 seconds
   }
 
   // Add operation-specific lock to prevent multiple executions of the same operation
   const operationLockKey = `envvars_${operation}_${doc.id}`
   if (global.rapidUpdateCache?.[operationLockKey]) {
-    logger.envVars(`Operation ${operation} for document ${doc.id} already in progress, skipping...`)
+    void logger.envVars(
+      `Operation ${operation} for document ${doc.id} already in progress, skipping...`,
+    )
     cleanupDocLock()
     return
   }
@@ -166,7 +168,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
   // Check if a final database update is still pending for this document
   const finalUpdateKey = `final-update-${doc.id}`
   if (global.rapidUpdateCache?.[finalUpdateKey]) {
-    logger.envVars(
+    void logger.envVars(
       `Final database update still pending for document ${doc.id}, skipping to prevent race condition...`,
     )
     cleanupDocLock()
@@ -179,7 +181,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
   // Only process create/update operations
   if (operation !== 'create' && operation !== 'update') {
-    logger.envVars(`⏭️ Skipping ${String(operation)} operation - not a create/update`)
+    void logger.envVars(`⏭️ Skipping ${String(operation)} operation - not a create/update`)
     cleanupDocLock()
     return
   }
@@ -202,7 +204,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
         if (currentCount > previousCount) {
           const addedCount = currentCount - previousCount
-          logger.envVars(
+          void logger.envVars(
             `✅ UPDATE operation with ${addedCount} new variables added (${previousCount} → ${currentCount})`,
             { addedCount, currentCount, documentId: doc.id, previousCount },
           )
@@ -226,21 +228,21 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
       )
 
     if (hasVariablesToCreate) {
-      logger.envVars(`✅ UPDATE operation with variables needing Vercel creation`)
+      void logger.envVars(`✅ UPDATE operation with variables needing Vercel creation`)
     }
   }
 
   // Extract tenant ID
   const tenantId = typeof doc.tenant === 'string' ? doc.tenant : doc.tenant?.id
   if (!tenantId) {
-    logger.envVars(`❌ No tenant ID found, skipping...`)
+    void logger.envVars(`❌ No tenant ID found, skipping...`)
     cleanupDocLock()
     return
   }
 
   try {
     isProcessing = true
-    logger.envVars(`🔄 Starting ${operation} operation for document ${doc.id}`)
+    void logger.envVars(`🔄 Starting ${operation} operation for document ${doc.id}`)
 
     // Get tenant details
     const { payload } = req
@@ -250,21 +252,23 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
     })
 
     if (!tenant) {
-      logger.envVars(`❌ Tenant ${tenantId} not found`)
+      void logger.envVars(`❌ Tenant ${tenantId} not found`)
       return
     }
 
     // Check tenant requirements
     if (tenant.status !== 'approved' || tenant.isActive !== true) {
-      logger.envVars(`❌ Tenant ${tenant.name} not approved or inactive`)
+      void logger.envVars(`❌ Tenant ${tenant.name} not approved or inactive`)
       return
     }
 
     if (!tenant.vercelProjectId || !tenant.vercelProjectUrl) {
-      logger.envVars(`❌ Tenant ${tenant.name} missing Vercel project information`)
+      void logger.envVars(`❌ Tenant ${tenant.name} missing Vercel project information`)
 
       // Provide guidance on how to fix this
-      logger.envVars(`💡 To fix this issue: Use /vercel/create-tenant or /vercel/sync endpoints`)
+      void logger.envVars(
+        `💡 To fix this issue: Use /vercel/create-tenant or /vercel/sync endpoints`,
+      )
 
       cleanupDocLock()
       return
@@ -272,12 +276,12 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
     // Check for environment variables
     if (!doc.envVars || doc.envVars.length === 0) {
-      logger.envVars(`❌ No environment variables found`)
+      void logger.envVars(`❌ No environment variables found`)
       cleanupDocLock()
       return
     }
 
-    logger.envVars(`✅ Processing ${doc.envVars.length} variables for tenant ${tenant.name}`)
+    void logger.envVars(`✅ Processing ${doc.envVars.length} variables for tenant ${tenant.name}`)
 
     // Separate variables by vercelId status
     const varsToCreate: any[] = []
@@ -305,7 +309,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
         if (isRename) {
           // This is a rename - treat as create (delete old will be handled by delete detection)
-          logger.envVars(
+          void logger.envVars(
             `🔄 Variable ${envVar.key} detected as rename from ${previousVarByVercelId.key}`,
           )
           // For renames, we need to create the new variable and delete the old one
@@ -314,7 +318,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
           varsToCreate.push(renamedVar)
         } else if (hasValueChanged) {
           // This is a value change - update on Vercel
-          logger.envVars(`📝 Variable ${envVar.key} value changed - will update on Vercel`)
+          void logger.envVars(`📝 Variable ${envVar.key} value changed - will update on Vercel`)
           varsToUpdate.push(envVar)
         }
       } else if (envVar.vercelId !== 'FAILED_CREATION') {
@@ -355,13 +359,13 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
         const resultData = await result.json()
 
         if (result.status === 200 && resultData.success) {
-          logger.envVars(`✅ CREATE endpoint succeeded`)
+          void logger.envVars(`✅ CREATE endpoint succeeded`)
 
           // Update database with Vercel IDs AND processed values
           if (resultData.results?.[0]?.vercelIds && resultData.results[0]?.processedEnvVars) {
             const vercelIds = resultData.results[0].vercelIds
             const processedEnvVars = resultData.results[0].processedEnvVars
-            logger.envVars(
+            void logger.envVars(
               `🎯 Received ${vercelIds.length} Vercel IDs and ${processedEnvVars.length} processed variables`,
             )
 
@@ -387,13 +391,13 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
                 // Count how many variables we successfully processed
                 const processedCount = updatedEnvVars.filter((v: any) => v.vercelId).length
-                logger.envVars(
+                void logger.envVars(
                   `📊 Successfully processed ${processedCount}/${doc.envVars.length} variables with Vercel IDs`,
                 )
 
                 // If no vercelIds, we can't update the database but should still proceed
                 if (vercelIds.length === 0) {
-                  logger.envVars(`⚠️ Skipping database update - no vercelIds available`)
+                  void logger.envVars(`⚠️ Skipping database update - no vercelIds available`)
                   return // Exit early but don't fail the operation
                 }
 
@@ -406,11 +410,11 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
                   if (!(global as any)[updateKey]) {
                     ;(global as any)[updateKey] = true
 
-                    logger.envVars(`🔄 Scheduling delayed update for document ${doc.id}`)
+                    void logger.envVars(`🔄 Scheduling delayed update for document ${doc.id}`)
 
                     setTimeout(async () => {
                       try {
-                        logger.envVars(`🔄 Updating document ${doc.id} with Vercel IDs`)
+                        void logger.envVars(`🔄 Updating document ${doc.id} with Vercel IDs`)
 
                         await payload.update({
                           id: doc.id,
@@ -421,9 +425,9 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
                           },
                         })
 
-                        logger.envVars(`✅ Vercel IDs saved successfully`)
+                        void logger.envVars(`✅ Vercel IDs saved successfully`)
                       } catch (delayedError) {
-                        logger.error(
+                        void logger.error(
                           `❌ Delayed update failed for document ${doc.id}: ${delayedError instanceof Error ? delayedError.message : String(delayedError)}`,
                         )
                       } finally {
@@ -431,36 +435,36 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
                       }
                     }, 500)
                   } else {
-                    logger.envVars(`⚠️ Update already scheduled, skipping`)
+                    void logger.envVars(`⚠️ Update already scheduled, skipping`)
                   }
                 } else {
                   // For UPDATE operations, skip this update - it will be handled in the UPDATE section
-                  logger.envVars(
+                  void logger.envVars(
                     `⏭️ Skipping database update in CREATE section for UPDATE operation`,
                   )
                 }
               } catch (processingError) {
-                logger.error(
+                void logger.error(
                   `❌ Vercel ID processing failed: ${processingError instanceof Error ? processingError.message : String(processingError)}`,
                 )
-                logger.envVars(
+                void logger.envVars(
                   `⚠️ Vercel variables created but ID processing failed - check logs for details`,
                 )
               }
             } catch (updateError) {
-              logger.error(
+              void logger.error(
                 `⚠️ Outer database update failed: ${updateError instanceof Error ? updateError.message : String(updateError)}`,
               )
-              logger.envVars(
+              void logger.envVars(
                 `⚠️ Vercel variables created but database update failed - check logs for details`,
               )
             }
           }
         } else {
-          logger.error(`❌ CREATE endpoint failed: ${resultData.message}`)
+          void logger.error(`❌ CREATE endpoint failed: ${resultData.message}`)
         }
       } catch (error) {
-        logger.error(
+        void logger.error(
           `❌ Error creating variables: ${error instanceof Error ? error.message : String(error)}`,
         )
       }
@@ -485,7 +489,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
         )
 
         if (!allVarsHaveValidIds) {
-          logger.envVars(`⚠️ Skipping updates - some variables lack valid Vercel IDs`)
+          void logger.envVars(`⚠️ Skipping updates - some variables lack valid Vercel IDs`)
           cleanupDocLock()
           return
         }
@@ -508,13 +512,13 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
       const varsNeedingVercelCreation = varsToCreate // New variables from UPDATE operation
       const varsNeedingVercelUpdate = varsToUpdate // Existing variables that need updates
 
-      logger.envVars(
+      void logger.envVars(
         `📊 Processing: ${varsNeedingVercelCreation.length} to create, ${varsNeedingVercelUpdate.length} to update`,
       )
 
       // STEP 1: Create variables without vercelId and update database immediately
       if (varsNeedingVercelCreation.length > 0) {
-        logger.envVars(
+        void logger.envVars(
           `🚀 Creating ${varsNeedingVercelCreation.length} variables without vercelId on Vercel`,
         )
 
@@ -536,7 +540,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
             const processedEnvVars = result.processedEnvVars
 
             if (vercelIds.length === 0) {
-              logger.error(
+              void logger.error(
                 `❌ No variables were created on Vercel - this will cause infinite loop`,
                 {
                   documentId: doc.id,
@@ -562,8 +566,8 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
               return // Exit early to prevent infinite loop
             }
 
-            logger.envVars(`✅ Direct Vercel API call succeeded for missing variables`)
-            logger.envVars(`🎯 Received ${vercelIds.length} Vercel IDs for missing variables`)
+            void logger.envVars(`✅ Direct Vercel API call succeeded for missing variables`)
+            void logger.envVars(`🎯 Received ${vercelIds.length} Vercel IDs for missing variables`)
 
             // Merge Vercel IDs and processed values
             const updatedEnvVars = doc.envVars.map((envVar: any) => {
@@ -583,7 +587,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
             })
 
             // Store the updated variables for later database update
-            logger.envVars(`📝 Storing updated variables for later database update`)
+            void logger.envVars(`📝 Storing updated variables for later database update`)
 
             // Update the doc object for subsequent operations
             doc.envVars = updatedEnvVars
@@ -597,11 +601,11 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
                 envVar.vercelId !== 'undefined' &&
                 envVar.vercelId !== '',
             )
-            logger.envVars(
+            void logger.envVars(
               `✅ Successfully merged ${variablesWithVercelIds.length} variables with Vercel IDs`,
             )
           } else {
-            logger.error(`❌ Direct Vercel API call failed for missing variables`, {
+            void logger.error(`❌ Direct Vercel API call failed for missing variables`, {
               documentId: doc.id,
               error: result.error || 'Unknown error',
               tenantId,
@@ -622,7 +626,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
             return // Exit early if CREATE fails
           }
         } catch (error) {
-          logger.error(
+          void logger.error(
             `❌ Error creating missing variables`,
             { documentId: doc.id, tenantId },
             error instanceof Error ? error : undefined,
@@ -646,7 +650,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
 
       // STEP 2: Update variables with vercelId
       if (varsNeedingVercelUpdate.length > 0) {
-        logger.envVars(
+        void logger.envVars(
           `📝 Processing ${varsNeedingVercelUpdate.length} existing variables for updates`,
         )
 
@@ -684,14 +688,14 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
             const resultData = await result.json()
 
             if (result.status === 200 && resultData.success) {
-              logger.envVars(`✅ Updated ${envVar.key} on Vercel`)
+              void logger.envVars(`✅ Updated ${envVar.key} on Vercel`)
               return { key: envVar.key, success: true }
             } else {
-              logger.error(`Failed to update ${envVar.key}: ${resultData.message}`)
+              void logger.error(`Failed to update ${envVar.key}: ${resultData.message}`)
               return { error: resultData.message, key: envVar.key, success: false }
             }
           } catch (error) {
-            logger.error(
+            void logger.error(
               `Error updating ${envVar.key}: ${error instanceof Error ? error.message : String(error)}`,
             )
             return {
@@ -709,13 +713,13 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
         successfulUpdates = updateResults.filter((r) => r.success).length
         failedUpdates = updateResults.filter((r) => !r.success).length
 
-        logger.envVars(
+        void logger.envVars(
           `📊 Update summary: ${successfulUpdates} successful, ${failedUpdates} failed`,
         )
 
         // If any updates failed, abort the process to prevent inconsistent state
         if (failedUpdates > 0) {
-          logger.error(
+          void logger.error(
             `❌ Aborting update process due to ${failedUpdates} failed Vercel operations`,
           )
 
@@ -758,7 +762,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
         })
 
         if (deletedVars.length > 0) {
-          logger.envVars(`🗑️ Detected ${deletedVars.length} variables to delete from Vercel`)
+          void logger.envVars(`🗑️ Detected ${deletedVars.length} variables to delete from Vercel`)
 
           try {
             const { deleteEnvironmentVariablesDirect } = await import(
@@ -768,28 +772,28 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
             const envVarIds = deletedVars.map((v: any) => v.vercelId)
             const deleteResult = await deleteEnvironmentVariablesDirect({
               envVarIds,
+              payload: req.payload,
               projectId: tenant.vercelProjectId,
               teamId: tenant.vercelTeamId,
-              payload: req.payload,
             })
 
             if (deleteResult.success) {
-              logger.envVars(
+              void logger.envVars(
                 `✅ Successfully deleted ${deleteResult.successfulDeletes}/${deletedVars.length} variables from Vercel`,
               )
               deletedVarsCount = deleteResult.successfulDeletes || 0
             } else {
-              logger.error(`❌ Failed to delete variables from Vercel: ${deleteResult.error}`)
+              void logger.error(`❌ Failed to delete variables from Vercel: ${deleteResult.error}`)
             }
           } catch (deleteError) {
-            logger.error(
+            void logger.error(
               `❌ Error deleting variables from Vercel: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`,
             )
           }
         }
       }
 
-      logger.envVars(
+      void logger.envVars(
         `📊 UPDATE operation completed: ${varsToCreate.length} new variables created, ${varsNeedingVercelCreation.length} missing variables processed, ${varsNeedingVercelUpdate.length} existing variables updated, ${deletedVarsCount} variables deleted`,
       )
 
@@ -813,14 +817,14 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
         const now = Date.now()
 
         if (lastFinalUpdate && now - lastFinalUpdate < 1000) {
-          logger.envVars(
+          void logger.envVars(
             `⏭️ Skipping final database update - too recent (${now - lastFinalUpdate}ms ago)`,
           )
         } else if (!(global as any)[finalUpdateKey]) {
           ;(global as any)[finalUpdateKey] = true
           ;(global as any)[`${finalUpdateKey}-timestamp`] = now
 
-          logger.envVars(`🔄 Scheduling delayed database update to avoid write conflicts`)
+          void logger.envVars(`🔄 Scheduling delayed database update to avoid write conflicts`)
 
           setTimeout(async () => {
             try {
@@ -856,12 +860,12 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
               )
 
               if (updateSuccess) {
-                logger.envVars(`✅ Delayed database update completed successfully`)
+                void logger.envVars(`✅ Delayed database update completed successfully`)
               } else {
-                logger.error(`❌ Delayed SimpleUpdateStrategy failed`)
+                void logger.error(`❌ Delayed SimpleUpdateStrategy failed`)
               }
             } catch (delayedError) {
-              logger.error(
+              void logger.error(
                 `❌ Delayed database update failed: ${delayedError instanceof Error ? delayedError.message : String(delayedError)}`,
               )
             } finally {
@@ -876,7 +880,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
       if (doc.autodeploy) {
         const _autoDeployTenantId = typeof doc.tenant === 'string' ? doc.tenant : doc.tenant?.id
         try {
-          logger.envVars('Autodeploy enabled, checking tenant status...')
+          void logger.envVars('Autodeploy enabled, checking tenant status...')
 
           // Get the tenant to check if it has approved status and isActive
           const tenant = await payload.findByID({
@@ -885,17 +889,17 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
           })
 
           if (!tenant || tenant.status !== 'approved' || tenant.isActive !== true) {
-            logger.envVars('Tenant not approved or inactive, skipping auto-deploy')
+            void logger.envVars('Tenant not approved or inactive, skipping auto-deploy')
           } else if (!tenant.vercelProjectId) {
-            logger.envVars('Tenant missing Vercel project ID, skipping auto-deploy')
+            void logger.envVars('Tenant missing Vercel project ID, skipping auto-deploy')
           } else if (
             !tenant.vercelProjectGitRepository?.owner ||
             !tenant.vercelProjectGitRepository?.repo ||
             !tenant.vercelProjectGitRepository?.repoId
           ) {
-            logger.envVars('Tenant missing git repository information, skipping auto-deploy')
+            void logger.envVars('Tenant missing git repository information, skipping auto-deploy')
           } else {
-            logger.envVars('Tenant ready for auto-deploy, creating deployment record...')
+            void logger.envVars('Tenant ready for auto-deploy, creating deployment record...')
 
             // Create deployment record first (without Vercel deployment info)
             // Use a small delay to ensure environment variables are fully saved
@@ -916,15 +920,15 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
                   },
                 })
 
-                logger.envVars('Deployment record created successfully')
-                logger.envVars(
+                void logger.envVars('Deployment record created successfully')
+                void logger.envVars(
                   'Deployment will be triggered automatically by deploymentTriggerHook',
                 )
 
                 // Note: The deploymentTriggerHook will handle the actual Vercel deployment
                 // We don't need to trigger it manually here to avoid conflicts
               } catch (createError) {
-                logger.error(
+                void logger.error(
                   `Error creating deployment record: ${createError instanceof Error ? createError.message : String(createError)}`,
                 )
                 // Don't throw error here as the main operation already succeeded
@@ -933,7 +937,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
             }, 2000) // 2 second delay to ensure environment variables are fully saved
           }
         } catch (error) {
-          logger.error(
+          void logger.error(
             `Error in auto-deploy logic: ${error instanceof Error ? error.message : String(error)}`,
           )
           // Don't throw error here as the main operation already succeeded
@@ -941,10 +945,10 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
         }
       }
 
-      logger.envVars(`✅ Operation ${operation} completed successfully`)
+      void logger.envVars(`✅ Operation ${operation} completed successfully`)
     }
   } catch (error) {
-    logger.error(
+    void logger.error(
       `❌ Error in environment variable management: ${error instanceof Error ? error.message : String(error)}`,
     )
   } finally {
@@ -953,7 +957,7 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
     cleanupDocLock()
     // Clean up rapid update marker
     cleanupRapidUpdateMarker()
-    logger.envVars(`🔄 Hook processing completed`)
+    void logger.envVars(`🔄 Hook processing completed`)
   }
 }
 
@@ -972,13 +976,13 @@ export const envvarsBeforeValidateHook: CollectionBeforeValidateHook = async ({
   // Skip processing if this is a sync operation
   // Skip if _skipHooks is true OR if this is a system-initiated operation
   if (data?._skipHooks === true) {
-    logger.envVars(`⏭️ Skipping validation hook - sync operation detected (_skipHooks=true)`)
+    void logger.envVars(`⏭️ Skipping validation hook - sync operation detected (_skipHooks=true)`)
     return
   }
 
   // Additional check: Skip if this is a system operation (no user context or specific system flags)
   if (req.user === undefined || (req as any).isSystemOperation === true) {
-    logger.envVars(`⏭️ Skipping validation hook - system operation detected`)
+    void logger.envVars(`⏭️ Skipping validation hook - system operation detected`)
     return
   }
 
@@ -1004,7 +1008,7 @@ export const envvarsBeforeValidateHook: CollectionBeforeValidateHook = async ({
     const uniqueKeys = new Set(keys)
 
     if (keys.length !== uniqueKeys.size) {
-      logger.warn(`⚠️ Duplicate environment variable keys detected`)
+      void logger.warn(`⚠️ Duplicate environment variable keys detected`)
     }
 
     // ENFORCE ONE-TO-ONE RELATIONSHIP: Check if another tenant environment variable already exists for this tenant
@@ -1021,7 +1025,7 @@ export const envvarsBeforeValidateHook: CollectionBeforeValidateHook = async ({
         if (existingDoc.docs.length > 0) {
           const { APIError } = await import('payload')
           const errorMessage = `A tenant environment variable record already exists for tenant ${tenantId}. Only one record per tenant is allowed.`
-          logger.error(`${errorMessage}`)
+          void logger.error(`${errorMessage}`)
           throw new APIError(errorMessage, 400)
         }
       } catch (error) {
@@ -1029,14 +1033,14 @@ export const envvarsBeforeValidateHook: CollectionBeforeValidateHook = async ({
           throw error
         }
         // If it's not our specific error, continue with validation
-        logger.warn(
+        void logger.warn(
           `Could not verify tenant uniqueness: ${error instanceof Error ? error.message : 'Unknown error'}`,
         )
       }
     }
   } catch (error) {
     const _errorTenantId = typeof data?.tenant === 'string' ? data.tenant : data?.tenant?.id
-    logger.error(
+    void logger.error(
       `Error during validation: ${error instanceof Error ? error.message : String(error)}`,
     )
     throw error // Re-throw to prevent the operation

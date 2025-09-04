@@ -6,12 +6,28 @@ import { getVercelCredentials } from './vercelUtils'
 
 export const deleteDeployment: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
-    logger.deployment('Starting deployment deletion...')
+    void logger.deployment('Starting deployment deletion...')
+     
     const { teamId, vercel } = await getVercelCredentials(req.payload)
-    const { deploymentId, tenantDeploymentId } = (await req.json?.()) || {}
+
+    // Safely parse JSON request body
+    let deploymentId, tenantDeploymentId
+    try {
+      const body = await req.json?.()
+      if (body) {
+        deploymentId = body.deploymentId
+        tenantDeploymentId = body.tenantDeploymentId
+      }
+    } catch (error) {
+      // If JSON parsing fails, use empty object (default values)
+      void logger.debug('No JSON body or parsing failed, using defaults', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+
     const { payload } = req
 
-    logger.deployment('Request params', { deploymentId, teamId, tenantDeploymentId })
+    void logger.deployment('Request params', { deploymentId, teamId, tenantDeploymentId })
 
     if (!deploymentId) {
       return Response.json(
@@ -21,22 +37,22 @@ export const deleteDeployment: PayloadHandler = async (req) => {
     }
 
     // Delete deployment on Vercel
-    logger.deployment('Deleting deployment on Vercel', { deploymentId })
+    void logger.deployment('Deleting deployment on Vercel', { deploymentId })
     const result = await vercel.deployments.deleteDeployment({
       id: deploymentId,
       teamId,
     })
 
-    logger.deployment('Vercel deletion result', { result })
+    void logger.deployment('Vercel deletion result', { result })
 
     // If tenantDeploymentId is provided, also delete the local record
     if (tenantDeploymentId) {
-      logger.deployment('Deleting local tenant-deployment record', { tenantDeploymentId })
+      void logger.deployment('Deleting local tenant-deployment record', { tenantDeploymentId })
       await payload.delete({
         id: tenantDeploymentId,
         collection: 'tenant-deployment',
       })
-      logger.deployment('Local record deleted successfully')
+      void logger.deployment('Local record deleted successfully')
     }
 
     return Response.json({

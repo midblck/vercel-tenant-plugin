@@ -35,7 +35,7 @@ export function generateSecret(length: number): string {
  */
 function getTenantBasedValue(key: string, tenant: TenantData): string {
   // Log tenant data for debugging
-  logger.envVars(`Getting tenant-based value for ${key}`, {
+  void logger.envVars(`Getting tenant-based value for ${key}`, {
     key,
     tenantName: tenant.name,
     vercelProjectName: tenant.vercelProjectName,
@@ -90,6 +90,7 @@ export const createEnvironmentVariablesDirect = async ({
   tenantId: string
 }) => {
   try {
+     
     const { teamId, vercelToken } = await getVercelCredentials(payload as any, tenantId)
 
     if (!vercelToken) {
@@ -147,7 +148,7 @@ export const createEnvironmentVariablesDirect = async ({
       return envVar
     })
 
-    logger.envVars(`Creating ${varsToCreate.length} variables for tenant ${tenant.name}`, {
+    void logger.envVars(`Creating ${varsToCreate.length} variables for tenant ${tenant.name}`, {
       count: varsToCreate.length,
       tenantName: tenant.name,
     })
@@ -173,7 +174,7 @@ export const createEnvironmentVariablesDirect = async ({
         })
 
         // Debug: Log the actual response structure
-        logger.envVars(`🔍 DEBUG: Vercel API response for ${envVar.key}`, {
+        void logger.envVars(`🔍 DEBUG: Vercel API response for ${envVar.key}`, {
           key: envVar.key,
           response: result,
           responseKeys: Object.keys(result || {}),
@@ -192,7 +193,7 @@ export const createEnvironmentVariablesDirect = async ({
           targets: envVar.targets,
         })
 
-        logger.envVars(`✅ Created ${envVar.key} on Vercel`, {
+        void logger.envVars(`✅ Created ${envVar.key} on Vercel`, {
           key: envVar.key,
           vercelId: (result as any).id || (result as any).key || envVar.key,
         })
@@ -201,9 +202,12 @@ export const createEnvironmentVariablesDirect = async ({
 
         // Check if the error is because the variable already exists
         if (errorMessage.includes('already exists')) {
-          logger.envVars(`⚠️ Variable ${envVar.key} already exists on Vercel, fetching ID...`, {
-            key: envVar.key,
-          })
+          void logger.envVars(
+            `⚠️ Variable ${envVar.key} already exists on Vercel, fetching ID...`,
+            {
+              key: envVar.key,
+            },
+          )
 
           try {
             // Fetch existing environment variables to get the ID
@@ -234,23 +238,23 @@ export const createEnvironmentVariablesDirect = async ({
                 targets: envVar.targets,
               })
 
-              logger.envVars(`✅ Found existing ${envVar.key} on Vercel`, {
+              void logger.envVars(`✅ Found existing ${envVar.key} on Vercel`, {
                 key: envVar.key,
                 vercelId: existingVar.id,
               })
             } else {
-              logger.error(`Variable ${envVar.key} exists but couldn't find it in list`, {
+              void logger.error(`Variable ${envVar.key} exists but couldn't find it in list`, {
                 key: envVar.key,
               })
             }
           } catch (fetchError) {
-            logger.error(`Failed to fetch existing variable ${envVar.key}`, {
+            void logger.error(`Failed to fetch existing variable ${envVar.key}`, {
               key: envVar.key,
               error: fetchError instanceof Error ? fetchError.message : String(fetchError),
             })
           }
         } else {
-          logger.error(`Failed to create ${envVar.key} on Vercel`, {
+          void logger.error(`Failed to create ${envVar.key} on Vercel`, {
             key: envVar.key,
             error: errorMessage,
           })
@@ -264,7 +268,7 @@ export const createEnvironmentVariablesDirect = async ({
       processedEnvVars,
     }
   } catch (error) {
-    logger.error('Error in createEnvironmentVariablesDirect', {
+    void logger.error('Error in createEnvironmentVariablesDirect', {
       error: error instanceof Error ? error.message : String(error),
     })
     return {
@@ -275,11 +279,12 @@ export const createEnvironmentVariablesDirect = async ({
 }
 
 export const createEnvironmentVariables: PayloadHandler = async (req) => {
-  return withErrorHandling(async () => {
+  return await withErrorHandling(async () => {
     const body = (await req.json?.()) || {}
     const { existingDocId, existingEnvVars, tenantId } = body as CreateEnvVarsRequest
 
     const { payload } = req
+     
     const { teamId, vercelToken } = await getVercelCredentials(payload as any)
     const { Vercel } = await import('@vercel/sdk')
     const vercel = new Vercel({ bearerToken: vercelToken })
@@ -312,12 +317,12 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
     // Progress tracking function
     const updateProgress = (tenantName: string, status: string) => {
       currentProgress++
-      logger.envVars(`🔄 [${currentProgress}/${tenants.docs.length}] ${status}: ${tenantName}`)
+      void logger.envVars(`🔄 [${currentProgress}/${tenants.docs.length}] ${status}: ${tenantName}`)
     }
 
     for (const tenant of tenants.docs) {
       try {
-        updateProgress(tenant.name || tenant.id, 'Processing')
+        void updateProgress(tenant.name || tenant.id, 'Processing')
 
         if (!tenant.vercelProjectId || !tenant.vercelProjectUrl) {
           results.push({
@@ -368,7 +373,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
             return envVar
           })
 
-          logger.envVars(
+          void logger.envVars(
             `Processing ${varsToCreate.length} environment variables for tenant ${tenant.name}`,
             {
               count: varsToCreate.length,
@@ -376,14 +381,14 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
             },
           )
         } else {
-          logger.envVars(`No environment variables provided for tenant ${tenant.name}`, {
+          void logger.envVars(`No environment variables provided for tenant ${tenant.name}`, {
             tenantName: tenant.name,
           })
           continue
         }
 
         if (varsToCreate.length === 0) {
-          logger.envVars(`No variables to create for tenant ${tenant.name}`, {
+          void logger.envVars(`No variables to create for tenant ${tenant.name}`, {
             tenantName: tenant.name,
           })
           results.push({
@@ -397,7 +402,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
           continue
         }
 
-        logger.envVars(`Creating ${varsToCreate.length} variables for tenant ${tenant.name}`, {
+        void logger.envVars(`Creating ${varsToCreate.length} variables for tenant ${tenant.name}`, {
           count: varsToCreate.length,
           tenantName: tenant.name,
         })
@@ -410,7 +415,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
 
         // Create environment variables on Vercel
         try {
-          logger.envVars(
+          void logger.envVars(
             `Creating ${varsToCreate.length} environment variables for tenant ${tenant.name}`,
             {
               count: varsToCreate.length,
@@ -433,13 +438,13 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
           }))
 
           // Debug: Show what variables are being sent
-          logger.envVars(`Variables being sent to Vercel`, {
+          void logger.envVars(`Variables being sent to Vercel`, {
             count: varsToCreate.length,
             tenantName: tenant.name,
           })
           varsToCreate.forEach((envVar: EnvironmentVariableData) => {
             if (envVar.isEncrypted) {
-              logger.envVars(
+              void logger.envVars(
                 `  - ${envVar.key}: [ENCRYPTED_SECRET_GENERATED] (type: ${envVar.type})`,
                 {
                   key: envVar.key,
@@ -448,7 +453,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
                 },
               )
             } else {
-              logger.envVars(
+              void logger.envVars(
                 `  - ${envVar.key}: ${envVar.value || '[EMPTY]'} (type: ${envVar.type})`,
                 {
                   key: envVar.key,
@@ -487,7 +492,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
             if (Array.isArray(result.created)) {
               // Batch operation format: "created": [...]
               created = result.created.length
-              logger.envVars(
+              void logger.envVars(
                 `✅ Successfully created ${created} environment variables for tenant ${tenant.name}`,
                 {
                   count: created,
@@ -503,14 +508,14 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
                 })
               })
 
-              logger.envVars(`🎯 Collected ${vercelIds.length} Vercel IDs`, {
+              void logger.envVars(`🎯 Collected ${vercelIds.length} Vercel IDs`, {
                 count: vercelIds.length,
                 tenantName: tenant.name,
               })
             } else if (typeof result.created === 'object' && result.created.key) {
               // Individual operation format: "created": {...}
               created = 1
-              logger.envVars(
+              void logger.envVars(
                 `✅ Successfully created 1 environment variable for tenant ${tenant.name}`,
                 {
                   count: 1,
@@ -524,26 +529,26 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
                 vercelId: result.created.id || '',
               })
 
-              logger.envVars(`🎯 Collected ${vercelIds.length} Vercel IDs`, {
+              void logger.envVars(`🎯 Collected ${vercelIds.length} Vercel IDs`, {
                 count: vercelIds.length,
                 tenantName: tenant.name,
               })
             } else {
-              logger.warn(`⚠️ Unexpected 'created' format: ${typeof result.created}`, {
+              void logger.warn(`⚠️ Unexpected 'created' format: ${typeof result.created}`, {
                 type: typeof result.created,
                 keys: Object.keys(result),
                 tenantName: tenant.name,
               })
             }
           } else {
-            logger.warn(`⚠️ No 'created' field in response`, {
+            void logger.warn(`⚠️ No 'created' field in response`, {
               keys: Object.keys(result),
               tenantName: tenant.name,
             })
           }
 
           if (result.failed && result.failed.length > 0) {
-            logger.warn(`Failed variables: ${result.failed.length}`, {
+            void logger.warn(`Failed variables: ${result.failed.length}`, {
               failed: result.failed,
               tenantName: tenant.name,
             })
@@ -551,7 +556,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
               const error = failed.error
               const errorMsg = `${error?.key || 'Unknown'}: ${error?.message || 'Unknown error'}`
               errors.push(errorMsg)
-              logger.error(`❌ Failed to create: ${errorMsg}`, {
+              void logger.error(`❌ Failed to create: ${errorMsg}`, {
                 key: error?.key,
                 message: error?.message,
                 tenantName: tenant.name,
@@ -561,7 +566,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
 
           // Handle case where no variables were created but API call succeeded
           if (created === 0 && !result.failed) {
-            logger.info(
+            void logger.info(
               `No variables created, but API call succeeded. Variables may already exist.`,
               {
                 tenantName: tenant.name,
@@ -586,7 +591,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
                       key: existingVar.key,
                       vercelId: existingVar.id,
                     })
-                    logger.info(
+                    void logger.info(
                       `Found existing Vercel ID for ${existingVar.key}: ${existingVar.id}`,
                       {
                         key: existingVar.key,
@@ -598,7 +603,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
                 })
               }
             } catch (retrieveError) {
-              logger.error(`Error retrieving existing Vercel IDs`, {
+              void logger.error(`Error retrieving existing Vercel IDs`, {
                 error:
                   retrieveError instanceof Error ? retrieveError.message : String(retrieveError),
                 tenantName: tenant.name,
@@ -608,7 +613,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : 'Unknown error'
           errors.push(`Creation failed: ${errorMsg}`)
-          logger.error(`❌ Error creating variables for tenant ${tenant.name}`, {
+          void logger.error(`❌ Error creating variables for tenant ${tenant.name}`, {
             error: errorMsg,
             tenantName: tenant.name,
           })
@@ -641,23 +646,24 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
               )
 
               if (updateSuccess) {
-                logger.info(`Successfully updated Vercel ID for tenant ${tenant.name}`, {
+                void logger.info(`Successfully updated Vercel ID for tenant ${tenant.name}`, {
                   tenantId: tenant.id,
                   vercelIdsCount: vercelIds.length,
                 })
               } else {
-                logger.warn(`Failed to update Vercel ID for tenant ${tenant.name}`, {
+                void logger.warn(`Failed to update Vercel ID for tenant ${tenant.name}`, {
                   tenantId: tenant.id,
                   vercelIdsCount: vercelIds.length,
                 })
               }
             } else {
-              logger.warn(`No document ID available for Vercel ID update`, {
+              void logger.warn(`No document ID available for Vercel ID update`, {
                 tenantId: tenant.id,
                 vercelIdsCount: vercelIds.length,
               })
             }
           } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             logger.error(`Error updating Vercel IDs for tenant ${tenant.name}`, {
               tenantId: tenant.id,
               error: error instanceof Error ? error.message : String(error),
@@ -677,11 +683,12 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
 
         // Update progress based on result
         if (errors.length === 0) {
-          updateProgress(tenant.name || tenant.id, 'Success')
+          void updateProgress(tenant.name || tenant.id, 'Success')
         } else {
-          updateProgress(tenant.name || tenant.id, 'Error')
+          void updateProgress(tenant.name || tenant.id, 'Error')
         }
       } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         logger.error(`❌ Error processing tenant ${tenant.name}`, {
           error: error instanceof Error ? error.message : String(error),
           tenantName: tenant.name,
@@ -695,7 +702,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
           tenant: tenant.name || String(tenant.id),
         })
 
-        updateProgress(tenant.name || tenant.id, 'Error')
+        void updateProgress(tenant.name || tenant.id, 'Error')
       }
     }
 
@@ -703,7 +710,7 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
     const successCount = results.filter((r) => r.status === 'success').length
     const errorCount = results.filter((r) => r.status === 'error').length
 
-    logger.info(
+    void logger.info(
       `✅ Operation completed: ${totalCreated} variables created across ${successCount} tenants`,
       {
         totalCreated,
@@ -778,7 +785,9 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
     },
   ): Promise<boolean> {
     try {
-      logger.info(`🔍 Attempting to find document ${documentId} in tenant-envariable collection`)
+      void logger.info(
+        `🔍 Attempting to find document ${documentId} in tenant-envariable collection`,
+      )
 
       // First try to find by document ID
       let currentDoc = null
@@ -789,12 +798,13 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
         })
 
         if (currentDoc) {
-          logger.info(`✅ Found document by ID ${documentId}`, {
+          void logger.info(`✅ Found document by ID ${documentId}`, {
             documentId,
             existingEnvVarsCount: (currentDoc as any).envVars?.length || 0,
           })
         }
       } catch (idError) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         logger.warn(`⚠️ Document not found by ID, will try alternative lookup`, {
           documentId,
           error: idError instanceof Error ? idError.message : String(idError),
@@ -803,7 +813,7 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
 
       // If not found by ID, try to find by tenant and environment (more reliable)
       if (!currentDoc && context?.tenantId) {
-        logger.info(`🔍 Trying alternative lookup by tenant ID: ${context.tenantId}`)
+        void logger.info(`🔍 Trying alternative lookup by tenant ID: ${context.tenantId}`)
 
         try {
           // Find the document by tenant ID and environment
@@ -824,6 +834,7 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
             if (docAge < 10000) {
               // Less than 10 seconds old
               currentDoc = tenantDoc
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
               logger.info(`✅ Found document by tenant lookup`, {
                 documentId: (tenantDoc as any).id,
                 tenantId: context.tenantId,
@@ -833,6 +844,7 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
             }
           }
         } catch (altError) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           logger.warn(`⚠️ Alternative lookup by tenant also failed`, {
             error: altError instanceof Error ? altError.message : String(altError),
             tenantId: context.tenantId,
@@ -842,7 +854,7 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
 
       // Final fallback: try to find the most recent document
       if (!currentDoc) {
-        logger.info(`🔍 Trying final fallback: most recent document`)
+        void logger.info(`🔍 Trying final fallback: most recent document`)
 
         try {
           const recentDocs = await this.payload.find({
@@ -858,6 +870,7 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
             if (docAge < 10000) {
               // Less than 10 seconds old
               currentDoc = recentDoc
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
               logger.info(`✅ Found document by timestamp fallback`, {
                 documentId: (recentDoc as any).id,
                 age: docAge,
@@ -866,6 +879,7 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
             }
           }
         } catch (fallbackError) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           logger.warn(`⚠️ Final fallback also failed`, {
             error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError),
           })
@@ -873,7 +887,7 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
       }
 
       if (!currentDoc) {
-        logger.error(`Document not found using any method: ${documentId}`, {
+        void logger.error(`Document not found using any method: ${documentId}`, {
           documentId,
           collection: 'tenant-envariable',
           vercelIdsCount: vercelIds.length,
@@ -887,7 +901,7 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
       if (context?.updatedEnvVars && context.updatedEnvVars.length > 0) {
         // Use the updated environment variables from the hook (includes processed values)
         updatedEnvVars = context.updatedEnvVars
-        logger.info(`📝 Using updated environment variables from hook context`)
+        void logger.info(`📝 Using updated environment variables from hook context`)
       } else {
         // Fallback: Merge Vercel IDs with existing variables (preserve current values)
         updatedEnvVars =
@@ -898,11 +912,12 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
             }
             return envVar
           }) || []
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         logger.info(`📝 Merging Vercel IDs with existing variables (fallback)`)
       }
 
       // Update database immediately
-      logger.info(`🔄 Updating document ${documentId} with ${vercelIds.length} Vercel IDs`)
+      void logger.info(`🔄 Updating document ${documentId} with ${vercelIds.length} Vercel IDs`)
 
       await this.payload.update({
         collection: 'tenant-envariable',
@@ -917,10 +932,11 @@ export class SimpleUpdateStrategy implements EnvVarUpdateStrategy {
         // },
       })
 
-      logger.info(`✅ Successfully updated Vercel IDs for document ${documentId}`)
+      void logger.info(`✅ Successfully updated Vercel IDs for document ${documentId}`)
 
       return true
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       logger.error(`Failed to update Vercel IDs in database for document ${documentId}`, {
         documentId,
         error: error instanceof Error ? error.message : String(error),

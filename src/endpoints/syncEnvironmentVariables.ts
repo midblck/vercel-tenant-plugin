@@ -1,14 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadHandler } from 'payload'
 
-import { logger } from '../utils/logger'
+import { createTenantAwareLogger } from '../utils/loggerInit'
 import { withErrorHandling } from '../utils/errors'
 import { getVercelCredentials } from './vercelUtils'
 
 export const syncEnvironmentVariables: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
+    // Create tenant-aware logger
+    const logger = createTenantAwareLogger(req.payload)
+
+     
     const { teamId, vercel } = await getVercelCredentials(req.payload)
-    const { syncAll, tenantId } = (await req.json?.()) || {}
+
+    // Safely parse JSON request body
+    let syncAll, tenantId
+    try {
+      const body = await req.json?.()
+      if (body) {
+        syncAll = body.syncAll
+        tenantId = body.tenantId
+      }
+    } catch (error) {
+      // If JSON parsing fails, use empty object (default values)
+      void logger.debug('No JSON body or parsing failed, using defaults', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+
     const { payload } = req
 
     let tenants = []
@@ -57,7 +76,7 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
       // Skip tenants that are not approved or inactive
       if (tenant.status !== 'approved' || tenant.isActive !== true) {
         totalSkippedInactive++
-        logger.info(
+        void logger.info(
           `⏭️ Skipping tenant ${tenant.name} - status: ${tenant.status}, isActive: ${tenant.isActive}`,
           {
             tenantId: tenant.id,
@@ -65,7 +84,7 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
             tenantName: tenant.name,
             tenantStatus: tenant.status,
           },
-        )
+        );
 
         syncResults.push({
           details: {
@@ -87,18 +106,18 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
 
         // Validate project ID format
         if (!projectId || typeof projectId !== 'string' || !projectId.startsWith('prj_')) {
-          logger.warn(`Invalid or missing project ID for tenant ${tenant.name}`, {
+          void logger.warn(`Invalid or missing project ID for tenant ${tenant.name}`, {
             projectId,
             projectIdType: typeof projectId,
             tenantId: tenant.id,
-          })
+          });
           continue
         }
 
-        logger.info(`Starting environment variable sync for tenant: ${tenant.name}`, {
+        void logger.info(`Starting environment variable sync for tenant: ${tenant.name}`, {
           projectId,
           tenantId: tenant.id,
-        })
+        });
 
         // Get environment variables from Vercel (production only)
         let envVarsResult
@@ -108,11 +127,11 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
             idOrName: projectId,
             teamId: teamId || undefined,
           })
-          logger.info(`Vercel API call successful for tenant ${tenant.name}`, {
+          void logger.info(`Vercel API call successful for tenant ${tenant.name}`, {
             projectId,
             resultType: typeof envVarsResult,
             teamId: teamId || 'no-team',
-          })
+          });
         } catch (vercelError) {
           logger.error(`Vercel API call failed for tenant ${tenant.name}`, {
             error: vercelError instanceof Error ? vercelError.message : String(vercelError),
@@ -124,9 +143,9 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
 
         // If no results, try alternative approach
         if (!envVarsResult || (Array.isArray(envVarsResult) && envVarsResult.length === 0)) {
-          logger.info(
+          void logger.info(
             `No environment variables found with filterProjectEnvs, trying alternative approach for tenant ${tenant.name}`,
-          )
+          );
 
           // Try to get project details first to verify project exists
           try {
@@ -137,16 +156,16 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
               (p: any) => p.id === projectId,
             )
             if (projectDetails) {
-              logger.info(`Project details retrieved for tenant ${tenant.name}`, {
+              void logger.info(`Project details retrieved for tenant ${tenant.name}`, {
                 projectExists: true,
                 projectId,
                 projectName: projectDetails.name,
-              })
+              });
             } else {
-              logger.warn(`Project not found in Vercel for tenant ${tenant.name}`, {
+              void logger.warn(`Project not found in Vercel for tenant ${tenant.name}`, {
                 projectId,
                 tenantId: tenant.id,
-              })
+              });
             }
           } catch (projectError) {
             logger.error(`Failed to get project details for tenant ${tenant.name}`, {
@@ -221,24 +240,24 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
         const existingTenantEnvVar = existingTenantEnvVarResult.docs?.[0] || null
         const existingEnvVarsMap = new Map()
 
-        logger.info(`Found existing tenant-envariable record for tenant ${tenant.name}`, {
+        void logger.info(`Found existing tenant-envariable record for tenant ${tenant.name}`, {
           existingEnvVarsCount: existingTenantEnvVar?.envVars?.length || 0,
           hasExistingRecord: !!existingTenantEnvVar,
           tenantId: tenant.id,
-        })
+        });
 
         // If tenant has existing record, create map for quick lookup: key -> env var object
         if (existingTenantEnvVar && existingTenantEnvVar.envVars) {
           existingTenantEnvVar.envVars.forEach((envVar: any) => {
             existingEnvVarsMap.set(envVar.key, envVar)
           })
-          logger.info(
+          void logger.info(
             `Created lookup map with ${existingEnvVarsMap.size} existing environment variables`,
-          )
+          );
         } else {
-          logger.info(
+          void logger.info(
             `No existing environment variables found for tenant ${tenant.name} - all variables will be treated as new`,
-          )
+          );
         }
 
         // Process all environment variables for this tenant
@@ -246,14 +265,14 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
         const envVarsToUpdate = []
         const envVarsToSkip = []
 
-        logger.info(
+        void logger.info(
           `Starting categorization of ${envVars.length} environment variables for tenant ${tenant.name}`,
           {
             existingEnvVarsCount: existingEnvVarsMap.size,
             tenantId: tenant.id,
             vercelEnvVarsCount: envVars.length,
           },
-        )
+        );
 
         // Categorize environment variables
         for (const vercelEnvVar of envVars) {
@@ -298,17 +317,17 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
           }
         }
 
-        logger.info(`Completed categorization for tenant ${tenant.name}`, {
+        void logger.info(`Completed categorization for tenant ${tenant.name}`, {
           tenantId: tenant.id,
           toAdd: envVarsToAdd.length,
           toSkip: envVarsToSkip.length,
           toUpdate: envVarsToUpdate.length,
-        })
+        });
 
         // Process skipped environment variables
-        logger.info(
+        void logger.info(
           `Processing ${envVarsToSkip.length} skipped environment variables for tenant ${tenant.name}`,
-        )
+        );
         for (const vercelEnvVar of envVarsToSkip) {
           totalSkipped++
           syncResults.push({
@@ -325,20 +344,20 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
         }
 
         // Process environment variables that need vercelId updates
-        logger.info(
+        void logger.info(
           `Processing ${envVarsToUpdate.length} environment variables that need vercelId updates for tenant ${tenant.name}`,
-        )
+        );
         for (const vercelEnvVar of envVarsToUpdate) {
           try {
             // Only process updates if we have an existing record
             if (!existingTenantEnvVar || !existingTenantEnvVar.envVars) {
-              logger.warn(
+              void logger.warn(
                 `Cannot update vercelId for ${vercelEnvVar.key} - no existing record found`,
                 {
                   key: vercelEnvVar.key,
                   tenantId: tenant.id,
                 },
-              )
+              );
               continue
             }
 
@@ -348,18 +367,18 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
             )
             if (envVarIndex !== -1) {
               existingTenantEnvVar.envVars[envVarIndex].vercelId = vercelEnvVar.id
-              logger.info(`Updated vercelId for ${vercelEnvVar.key}`, {
+              void logger.info(`Updated vercelId for ${vercelEnvVar.key}`, {
                 key: vercelEnvVar.key,
                 newVercelId: vercelEnvVar.id,
-              })
+              });
             } else {
-              logger.warn(
+              void logger.warn(
                 `Could not find ${vercelEnvVar.key} in existing record to update vercelId`,
                 {
                   key: vercelEnvVar.key,
                   tenantId: tenant.id,
                 },
-              )
+              );
             }
 
             totalUpdated++
@@ -387,9 +406,9 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
         }
 
         // Process new environment variables
-        logger.info(
+        void logger.info(
           `Processing ${envVarsToAdd.length} new environment variables for tenant ${tenant.name}`,
-        )
+        );
 
         // Transform envVarsToAdd to contain processed newEnvVar objects
         const processedNewEnvVars = []
@@ -406,11 +425,11 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
               vercelId: vercelEnvVar.id,
             }
 
-            logger.info(`Processing new environment variable ${vercelEnvVar.key}`, {
+            void logger.info(`Processing new environment variable ${vercelEnvVar.key}`, {
               type: newEnvVar.type,
               hasExistingRecord: !!existingTenantEnvVar,
               key: vercelEnvVar.key,
-            })
+            });
 
             if (existingTenantEnvVar) {
               // Add to existing record's envVars array
@@ -418,17 +437,17 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
                 existingTenantEnvVar.envVars = []
               }
               existingTenantEnvVar.envVars.push(newEnvVar)
-              logger.info(`Added ${vercelEnvVar.key} to existing record`, {
+              void logger.info(`Added ${vercelEnvVar.key} to existing record`, {
                 key: vercelEnvVar.key,
                 totalEnvVars: existingTenantEnvVar.envVars.length,
-              })
+              });
             } else {
               // Add to processed array for new record creation
               processedNewEnvVars.push(newEnvVar)
-              logger.info(`Prepared ${vercelEnvVar.key} for new record creation`, {
+              void logger.info(`Prepared ${vercelEnvVar.key} for new record creation`, {
                 type: newEnvVar.type,
                 key: vercelEnvVar.key,
-              })
+              });
             }
 
             totalCreated++
@@ -454,11 +473,11 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
 
         // Save the updated/created record with timeout protection
         try {
-          logger.info(`Starting database save operation for tenant ${tenant.name}`, {
+          void logger.info(`Starting database save operation for tenant ${tenant.name}`, {
             hasExistingRecord: !!existingTenantEnvVar,
             newEnvVarsCount: processedNewEnvVars.length,
             tenantId: tenant.id,
-          })
+          });
 
           // Add timeout wrapper for database operations
           const saveWithTimeout = async (operation: () => Promise<any>, timeoutMs = 30000) => {
@@ -475,10 +494,10 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
 
           if (existingTenantEnvVar) {
             // Update existing record with new environment variables
-            logger.info(`Updating existing record for tenant ${tenant.name}`, {
+            void logger.info(`Updating existing record for tenant ${tenant.name}`, {
               envVarsCount: existingTenantEnvVar.envVars.length,
               recordId: existingTenantEnvVar.id,
-            })
+            });
 
             await saveWithTimeout(async () => {
               return payload.update({
@@ -499,12 +518,12 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
               })
             })
 
-            logger.info(`Successfully updated existing record for tenant ${tenant.name}`)
+            void logger.info(`Successfully updated existing record for tenant ${tenant.name}`);
           } else if (processedNewEnvVars.length > 0) {
             // Create new record with all environment variables
-            logger.info(`Creating new record for tenant ${tenant.name}`, {
+            void logger.info(`Creating new record for tenant ${tenant.name}`, {
               envVarsCount: processedNewEnvVars.length,
-            })
+            });
 
             const newTenantEnvVarData = {
               environment: 'production',
@@ -532,9 +551,9 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
               })
             })
 
-            logger.info(`Successfully created new record for tenant ${tenant.name}`)
+            void logger.info(`Successfully created new record for tenant ${tenant.name}`);
           } else {
-            logger.info(`No database changes needed for tenant ${tenant.name}`)
+            void logger.info(`No database changes needed for tenant ${tenant.name}`);
           }
         } catch (saveError) {
           logger.error(
@@ -555,14 +574,14 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
         const tenantEndTime = Date.now()
         const tenantDuration = tenantEndTime - tenantStartTime
 
-        logger.info(`Completed environment variable sync for tenant: ${tenant.name}`, {
+        void logger.info(`Completed environment variable sync for tenant: ${tenant.name}`, {
           duration: `${tenantDuration}ms`,
           tenantId: tenant.id,
           totalCreated,
           totalSkipped,
           totalSynced,
           totalUpdated,
-        })
+        });
       } catch (tenantError) {
         logger.error(`Error syncing environment variables for tenant ${tenant.name}`, {
           error: tenantError instanceof Error ? tenantError.message : String(tenantError),

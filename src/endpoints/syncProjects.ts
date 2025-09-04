@@ -38,12 +38,12 @@ export const syncProjects: PayloadHandler = async (req) => {
     // Update progress tracking function
     const updateProgress = (projectName: string, status: string) => {
       currentProgress++
-      logger.info(`🔄 [${currentProgress}/${projects.length}] ${status}: ${projectName}`)
+      void logger.info(`🔄 [${currentProgress}/${projects.length}] ${status}: ${projectName}`);
     }
 
     for (const project of projects) {
       try {
-        updateProgress(project.name, 'Processing')
+        void updateProgress(project.name, 'Processing');
 
         // Check if tenant already exists
         const existingTenant = await payload.find({
@@ -84,7 +84,7 @@ export const syncProjects: PayloadHandler = async (req) => {
               },
             })
 
-            updateProgress(project.name, 'Updated')
+            void updateProgress(project.name, 'Updated');
             const updateReason = 'Status set to approved and data refreshed from Vercel'
 
             syncResults.push({
@@ -104,11 +104,11 @@ export const syncProjects: PayloadHandler = async (req) => {
               data: updateData,
             })
           } catch (updateError) {
-            logger.error(
+            void logger.error(
               `Error updating existing tenant ${existingTenantDoc.id}:`,
               { tenantId: existingTenantDoc.id, projectId: project.id },
               updateError as Error,
-            )
+            );
             syncResults.push({
               projectId: project.id,
               projectName: project.name,
@@ -138,11 +138,11 @@ export const syncProjects: PayloadHandler = async (req) => {
         try {
           tenantData = createNewTenantData(project, domainsArray, teamId)
         } catch (dataError) {
-          logger.error(
+          void logger.error(
             `Error creating tenant data for project ${project.name}:`,
             { projectName: project.name, projectId: project.id },
             dataError as Error,
-          )
+          );
           throw dataError
         }
 
@@ -152,7 +152,7 @@ export const syncProjects: PayloadHandler = async (req) => {
           data: tenantData,
         })
 
-        updateProgress(project.name, 'Created')
+        void updateProgress(project.name, 'Created');
         syncResults.push({
           projectId: project.id,
           projectName: project.name,
@@ -168,12 +168,12 @@ export const syncProjects: PayloadHandler = async (req) => {
           data: tenantData,
         })
       } catch (error) {
-        logger.error(
+        void logger.error(
           `Error syncing project ${project.id}:`,
           { projectId: project.id, projectName: project.name },
           error as Error,
-        )
-        updateProgress(project.name, 'Error')
+        );
+        void updateProgress(project.name, 'Error');
         syncResults.push({
           error: error instanceof Error ? error.message : 'Unknown error',
           projectId: project.id,
@@ -222,7 +222,7 @@ export const syncProjects: PayloadHandler = async (req) => {
       })),
     })
   } catch (error) {
-    logger.error('Error in syncProjects endpoint:', { endpoint: 'syncProjects' }, error as Error)
+    void logger.error('Error in syncProjects endpoint:', { endpoint: 'syncProjects' }, error as Error);
 
     return Response.json(
       {

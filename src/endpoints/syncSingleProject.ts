@@ -58,7 +58,7 @@ export async function getVercelProjectById(projectId: string, teamId: string, ve
           ? error
           : JSON.stringify(error) || 'Unknown error occurred'
 
-    logger.error('❌ Error in syncSingleProject endpoint', {
+    void logger.error('❌ Error in syncSingleProject endpoint', {
       error: errorMessage,
       errorStack: error instanceof Error ? error.stack : undefined,
       errorType: typeof error,
@@ -82,7 +82,7 @@ export async function getVercelProjectById(projectId: string, teamId: string, ve
  */
 export const syncSingleProject: PayloadHandler = async (req) => {
   try {
-    logger.info('🚀 syncSingleProject endpoint called', {
+    void logger.info('🚀 syncSingleProject endpoint called', {
       hasPayload: !!req.payload,
       hasUrl: !!req.url,
       method: req.method,
@@ -117,7 +117,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
     })
 
     if (existingTenant.docs.length === 0) {
-      logger.warn('⚠️ No tenant found for project', {
+      void logger.warn('⚠️ No tenant found for project', {
         projectId,
         timestamp: new Date().toISOString(),
       })
@@ -131,7 +131,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
     }
 
     const tenant = existingTenant.docs[0]
-    logger.info('✅ Found tenant for project', {
+    void logger.info('✅ Found tenant for project', {
       projectId,
       tenantId: tenant.id,
       tenantName: tenant.name,
@@ -139,7 +139,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
     })
 
     // Fetch project from Vercel API
-    logger.info('🔍 Fetching project from Vercel API', {
+    void logger.info('🔍 Fetching project from Vercel API', {
       projectId,
       teamId: teamId || 'none',
       timestamp: new Date().toISOString(),
@@ -147,7 +147,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
 
     const projectResult = await fetchVercelProject(projectId, teamId || '', vercelToken)
     if (!projectResult.success || !projectResult.data) {
-      logger.error('❌ Failed to fetch project from Vercel', {
+      void logger.error('❌ Failed to fetch project from Vercel', {
         error: projectResult.error || 'Unknown error',
         projectId,
         timestamp: new Date().toISOString(),
@@ -162,7 +162,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
     }
 
     const project = projectResult.data
-    logger.info('✅ Successfully fetched project from Vercel', {
+    void logger.info('✅ Successfully fetched project from Vercel', {
       hasDeployments: !!project.latestDeployments?.length,
       hasEnvironment: !!project.environment,
       hasFramework: !!project.framework,
@@ -179,7 +179,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
       vercelToken,
     )
     if (!transformResult.success || !transformResult.data) {
-      logger.error('❌ Failed to transform project data', {
+      void logger.error('❌ Failed to transform project data', {
         error: transformResult.error || 'Unknown error',
         projectId,
         timestamp: new Date().toISOString(),
@@ -198,7 +198,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
     // Update tenant record
     const updateResult = await updateTenantRecord(payload, tenant, transformedData, projectId)
     if (!updateResult.success || !updateResult.data) {
-      logger.error('❌ Failed to update tenant record', {
+      void logger.error('❌ Failed to update tenant record', {
         error: updateResult.error || 'Unknown error',
         projectId,
         timestamp: new Date().toISOString(),
@@ -226,7 +226,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
           ? error
           : JSON.stringify(error) || 'Unknown error occurred'
 
-    logger.error('❌ Unexpected error in syncSingleProject', {
+    void logger.error('❌ Unexpected error in syncSingleProject', {
       error: errorMessage,
       errorStack: error instanceof Error ? error.stack : undefined,
       errorType: typeof error,

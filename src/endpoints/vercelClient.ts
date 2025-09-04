@@ -44,7 +44,7 @@ export const getVercelProjects = async (
 
     // Log response structure for debugging (only in development)
     if (process.env.NODE_ENV === 'development') {
-      logger.debug('Vercel projects response structure', {
+      void logger.debug('Vercel projects response structure', {
         type: typeof projects,
         hasData: projects && typeof projects === 'object' && 'data' in projects,
         hasProjects: projects && typeof projects === 'object' && 'projects' in projects,
@@ -70,10 +70,13 @@ export const getVercelProjects = async (
     }
 
     // Log Vercel API response summary and ensure it's an array for consistency
+    void logger.info('Vercel projects fetched successfully', {
+      count: Array.isArray(projectsData) ? projectsData.length : 0,
+    })
 
     return createSuccessResponse(projectsData) as GetProjectsResponse
   } catch (error) {
-    logger.error('Error fetching Vercel projects', {
+    void logger.error('Error fetching Vercel projects', {
       error: error instanceof Error ? error.message : String(error),
     })
     return createVercelErrorResponse(error)
@@ -98,7 +101,7 @@ export const getProjectDomains = async (
 
     return createSuccessResponse(domains)
   } catch (error) {
-    logger.error(`Error fetching domains for project ${projectId}`, {
+    void logger.error(`Error fetching domains for project ${projectId}`, {
       error: error instanceof Error ? error.message : String(error),
       projectId,
     })
@@ -127,7 +130,7 @@ export const createVercelProject = async (
     })
     return createSuccessResponse(project) as CreateProjectResponse
   } catch (error) {
-    logger.error('Error creating Vercel project', {
+    void logger.error('Error creating Vercel project', {
       error: error instanceof Error ? error.message : String(error),
     })
 
@@ -156,7 +159,7 @@ export const updateVercelProject = async (
     })
     return createSuccessResponse(project) as CreateProjectResponse
   } catch (error) {
-    logger.error('Error updating Vercel project', {
+    void logger.error('Error updating Vercel project', {
       error: error instanceof Error ? error.message : String(error),
       projectId,
     })
@@ -200,7 +203,7 @@ export const updateVercelProjectComprehensive = async (
       ? `https://api.vercel.com/v9/projects/${projectId}?teamId=${teamId}`
       : `https://api.vercel.com/v9/projects/${projectId}`
 
-    logger.info('🔄 Updating Vercel project with comprehensive data', {
+    void logger.info('🔄 Updating Vercel project with comprehensive data', {
       projectId,
       teamId: teamId || 'none',
       tenantId: tenantData.id,
@@ -209,17 +212,17 @@ export const updateVercelProjectComprehensive = async (
     })
 
     // Validate input data
-    validateProjectUpdateData(tenantData)
+    void validateProjectUpdateData(tenantData)
 
     // Build request body
     const requestBody = buildProjectUpdateRequest(tenantData)
 
     // Log filtered fields for debugging
-    logFilteredFields(tenantData, projectId, requestBody)
+    void logFilteredFields(tenantData, projectId, requestBody)
 
     // If no fields to update, return early
     if (Object.keys(requestBody).length === 0) {
-      logger.info('ℹ️ No fields to update in Vercel project', {
+      void logger.info('ℹ️ No fields to update in Vercel project', {
         projectId,
         tenantId: tenantData.id,
         timestamp: new Date().toISOString(),
@@ -233,7 +236,7 @@ export const updateVercelProjectComprehensive = async (
     // Handle the response
     return handleProjectUpdateResponse(result, projectId, tenantData, requestBody)
   } catch (error) {
-    logger.error('❌ Error updating Vercel project', {
+    void logger.error('❌ Error updating Vercel project', {
       error: error instanceof Error ? error.message : String(error),
       projectId,
       tenantId: tenantData?.id,
@@ -257,7 +260,7 @@ export const updateProjectCrons = async (
     // Build URL with teamId parameter if available
     const url = `https://vercel.com/api/v1/projects/${projectId}/crons${teamId ? `?teamId=${teamId}` : ''}`
 
-    logger.info(`${enabled ? 'Enabling' : 'Disabling'} crons for project ${projectId}`, {
+    void logger.info(`${enabled ? 'Enabling' : 'Disabling'} crons for project ${projectId}`, {
       enabled,
       projectId,
     })
@@ -278,14 +281,17 @@ export const updateProjectCrons = async (
     }
 
     const result = await response.json()
-    logger.info(`Successfully ${enabled ? 'enabled' : 'disabled'} crons for project ${projectId}`, {
-      enabled,
-      projectId,
-    })
+    void logger.info(
+      `Successfully ${enabled ? 'enabled' : 'disabled'} crons for project ${projectId}`,
+      {
+        enabled,
+        projectId,
+      },
+    )
 
     return createSuccessResponse(result)
   } catch (error) {
-    logger.error(`Error updating crons for project ${projectId}`, {
+    void logger.error(`Error updating crons for project ${projectId}`, {
       error: error instanceof Error ? error.message : String(error),
       projectId,
     })
@@ -311,7 +317,7 @@ export const deleteVercelProject = async (
 
     return createSuccessResponse(null)
   } catch (error) {
-    logger.error('Error deleting Vercel project', {
+    void logger.error('Error deleting Vercel project', {
       error: error instanceof Error ? error.message : String(error),
       projectId,
     })
@@ -360,14 +366,17 @@ export const getProjectEnvironmentVariables = async (
     const envVarsArray = Array.isArray(envVars) ? envVars : (envVars as any).data || []
 
     // Log environment variables fetch result
-    logger.info(`Fetched ${envVarsArray.length} environment variables for project ${projectId}`, {
-      count: envVarsArray.length,
-      projectId,
-    })
+    void logger.info(
+      `Fetched ${envVarsArray.length} environment variables for project ${projectId}`,
+      {
+        count: envVarsArray.length,
+        projectId,
+      },
+    )
 
     return createSuccessResponse(envVarsArray)
   } catch (error) {
-    logger.error(`Error fetching environment variables for project ${projectId}`, {
+    void logger.error(`Error fetching environment variables for project ${projectId}`, {
       error: error instanceof Error ? error.message : String(error),
       projectId,
     })

@@ -199,7 +199,7 @@ export const syncTenantToVercelHook: CollectionAfterChangeHook = ({
     return doc
   }
 
-  logger.info(
+  void logger.info(
     `Tenant ${doc.name} has Vercel-relevant changes, syncing to Vercel project ${doc.vercelProjectId}`,
   )
 
@@ -215,7 +215,7 @@ export const syncTenantToVercelHook: CollectionAfterChangeHook = ({
       )
 
       if (!vercelToken) {
-        logger.error('Vercel token not found, cannot update Vercel project', {
+        void logger.error('Vercel token not found, cannot update Vercel project', {
           projectId: doc.vercelProjectId,
           tenantName: doc.name,
         })
@@ -229,7 +229,7 @@ export const syncTenantToVercelHook: CollectionAfterChangeHook = ({
       )
 
       if (updateResult.success) {
-        logger.info(
+        void logger.info(
           `Successfully synced tenant ${doc.name} changes to Vercel project ${doc.vercelProjectId}`,
         )
 
@@ -244,12 +244,12 @@ export const syncTenantToVercelHook: CollectionAfterChangeHook = ({
             },
           })
         } catch (updateError) {
-          logger.warn(`Failed to update lastSynced timestamp for tenant ${doc.name}`, {
+          void logger.warn(`Failed to update lastSynced timestamp for tenant ${doc.name}`, {
             error: updateError instanceof Error ? updateError.message : String(updateError),
           })
         }
       } else {
-        logger.error(
+        void logger.error(
           `Failed to sync tenant ${doc.name} changes to Vercel project ${doc.vercelProjectId}`,
           {
             error: updateResult.error,
@@ -258,7 +258,7 @@ export const syncTenantToVercelHook: CollectionAfterChangeHook = ({
         )
       }
     } catch (error) {
-      logger.error(`Error during Vercel project update for tenant ${doc.name}`, {
+      void logger.error(`Error during Vercel project update for tenant ${doc.name}`, {
         error: error instanceof Error ? error.message : String(error),
         projectId: doc.vercelProjectId,
       })
@@ -295,7 +295,9 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
         req.payload,
       )
 
-      logger.info(`Creating Vercel project for tenant "${data.name}"`, { tenantName: data.name })
+      void logger.info(`Creating Vercel project for tenant "${data.name}"`, {
+        tenantName: data.name,
+      })
 
       // Create Vercel project FIRST
       const { createVercelProject } = await import('../endpoints/vercelClient')
@@ -317,7 +319,7 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
 
       // Check Vercel project creation result
       if (!vercelResult.success || !vercelResult.data) {
-        logger.error(`Vercel project creation failed for "${data.name}"`, {
+        void logger.error(`Vercel project creation failed for "${data.name}"`, {
           error: vercelResult.error,
           tenantName: data.name,
         })
@@ -331,7 +333,7 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
       }
 
       const vercelProject = vercelResult.data
-      logger.info(`Vercel project created successfully: ${vercelProject.id}`, {
+      void logger.info(`Vercel project created successfully: ${vercelProject.id}`, {
         projectId: vercelProject.id,
         tenantName: data.name,
       })
@@ -350,12 +352,15 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
         : new Date().toISOString()
       data.lastSynced = new Date().toISOString()
 
-      logger.info(`Tenant "${data.name}" will be created with Vercel project ${vercelProject.id}`, {
-        projectId: vercelProject.id,
-        tenantName: data.name,
-      })
+      void logger.info(
+        `Tenant "${data.name}" will be created with Vercel project ${vercelProject.id}`,
+        {
+          projectId: vercelProject.id,
+          tenantName: data.name,
+        },
+      )
     } catch (error) {
-      logger.error(
+      void logger.error(
         `Error creating Vercel project for tenant "${data.name}"`,
         {
           tenantName: data.name,
@@ -397,7 +402,7 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
 
       // Check if tenant already has a Vercel project
       if (originalDoc.vercelProjectId) {
-        logger.info(
+        void logger.info(
           `Tenant "${originalDoc.name}" already has Vercel project, updating instead of creating`,
           { projectId: originalDoc.vercelProjectId, tenantName: originalDoc.name },
         )
@@ -415,12 +420,12 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
         )
 
         if (vercelResult.success && vercelResult.data) {
-          logger.info(`Vercel project updated successfully for tenant "${originalDoc.name}"`, {
+          void logger.info(`Vercel project updated successfully for tenant "${originalDoc.name}"`, {
             projectId: originalDoc.vercelProjectId,
             tenantName: originalDoc.name,
           })
         } else {
-          logger.error(`Failed to update Vercel project for tenant "${originalDoc.name}"`, {
+          void logger.error(`Failed to update Vercel project for tenant "${originalDoc.name}"`, {
             error: vercelResult.error,
             projectId: originalDoc.vercelProjectId,
             tenantName: originalDoc.name,
@@ -429,9 +434,12 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
           // The project still exists, just couldn't be updated
         }
       } else {
-        logger.info(`Creating new Vercel project for tenant "${originalDoc.name}" status change`, {
-          tenantName: originalDoc.name,
-        })
+        void logger.info(
+          `Creating new Vercel project for tenant "${originalDoc.name}" status change`,
+          {
+            tenantName: originalDoc.name,
+          },
+        )
 
         // Create new Vercel project FIRST
         const { createVercelProject } = await import('../endpoints/vercelClient')
@@ -456,7 +464,7 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
 
         // Check Vercel project creation result
         if (!vercelResult.success || !vercelResult.data) {
-          logger.error(`Vercel project creation failed for tenant "${originalDoc.name}"`, {
+          void logger.error(`Vercel project creation failed for tenant "${originalDoc.name}"`, {
             error: vercelResult.error,
             tenantName: originalDoc.name,
           })
@@ -470,7 +478,7 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
         }
 
         const vercelProject = vercelResult.data
-        logger.info(
+        void logger.info(
           `Vercel project created successfully for tenant status change: ${vercelProject.id}`,
           { projectId: vercelProject.id, tenantName: originalDoc.name },
         )
@@ -489,13 +497,13 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
           : new Date().toISOString()
         data.lastSynced = new Date().toISOString()
 
-        logger.info(
+        void logger.info(
           `Tenant "${originalDoc.name}" status will be changed to approved with Vercel project ${vercelProject.id}`,
           { projectId: vercelProject.id, tenantName: originalDoc.name },
         )
       }
     } catch (error) {
-      logger.error(
+      void logger.error(
         `Error handling status change for tenant "${originalDoc.name}"`,
         { tenantName: originalDoc.name },
         error as Error,
@@ -874,7 +882,7 @@ export function getCronUpdateResult(req: any): any {
 export const dashboardRefreshHook: CollectionAfterChangeHook = ({ doc, operation }) => {
   try {
     // Log the change for debugging
-    logger.tenant(`Tenant ${operation}: ${doc.name || doc.id}`, {
+    void logger.tenant(`Tenant ${operation}: ${doc.name || doc.id}`, {
       operation,
       status: doc.status,
       tenantId: doc.id,
@@ -883,7 +891,7 @@ export const dashboardRefreshHook: CollectionAfterChangeHook = ({ doc, operation
     // The frontend will automatically refresh tenant counts after sync operations
     // This hook ensures we log the changes for monitoring
   } catch (error) {
-    logger.error('Error in dashboard refresh hook', {
+    void logger.error('Error in dashboard refresh hook', {
       error: error instanceof Error ? error.message : String(error),
       tenantId: doc.id,
     })
@@ -893,12 +901,12 @@ export const dashboardRefreshHook: CollectionAfterChangeHook = ({ doc, operation
 export const dashboardDeleteHook: CollectionAfterDeleteHook = ({ id }) => {
   try {
     // Log the deletion for debugging
-    logger.tenant(`Tenant deleted: ${id}`)
+    void logger.tenant(`Tenant deleted: ${id}`)
 
     // The frontend will automatically refresh tenant counts after sync operations
     // This hook ensures we log the changes for monitoring
   } catch (error) {
-    logger.error('Error in dashboard delete hook', {
+    void logger.error('Error in dashboard delete hook', {
       error: error instanceof Error ? error.message : String(error),
       tenantId: id,
     })

@@ -44,7 +44,7 @@ export const tenantDeploymentCountsHandler = async (req: PayloadRequest) => {
     const buildingCount = buildingCountResult.totalDocs || 0
     const errorCount = errorCountResult.totalDocs || 0
 
-    logger.deployment('Tenant deployment counts fetched successfully', {
+    void logger.deployment('Tenant deployment counts fetched successfully', {
       building: buildingCount,
       error: errorCount,
       ready: readyCount,
@@ -59,7 +59,7 @@ export const tenantDeploymentCountsHandler = async (req: PayloadRequest) => {
       total: totalCount,
     })
   } catch (error) {
-    logger.error('Error fetching tenant deployment counts', {
+    void logger.error('Error fetching tenant deployment counts', {
       error: error instanceof Error ? error.message : String(error),
     })
 

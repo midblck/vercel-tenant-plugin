@@ -114,7 +114,7 @@ export const withErrorHandling = <T>(
     }
 
     // Log the error for debugging via proper logging system
-    logger.payloadError(
+    void logger.payloadError(
       `Operation failed in ${errorContext}`,
       {
         context: errorContext,

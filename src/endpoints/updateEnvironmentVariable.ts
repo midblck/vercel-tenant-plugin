@@ -271,7 +271,7 @@ export const updateEnvironmentVariable: PayloadHandler = async (req) => {
       },
     } as UpdateEnvVarResponse)
   } catch (error) {
-    logger.error('Error updating environment variable', {
+    void logger.error('Error updating environment variable', {
       error: error instanceof Error ? error.message : String(error),
     })
     return Response.json(

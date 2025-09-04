@@ -1,10 +1,13 @@
 import type { PayloadRequest } from 'payload'
 
-import { logger } from '../utils/logger'
+import { createTenantAwareLogger } from '../utils/loggerInit'
 
 export const tenantCountsHandler = async (req: PayloadRequest) => {
   try {
     const { payload } = req
+
+    // Create tenant-aware logger
+    const logger = createTenantAwareLogger(payload)
 
     // Use Payload's count functions directly (server-side)
     const [totalCountResult, approvedCountResult, draftCountResult] = await Promise.all([

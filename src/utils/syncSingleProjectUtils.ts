@@ -130,7 +130,7 @@ export async function transformProjectData(
           ? error
           : JSON.stringify(error) || 'Unknown error occurred'
 
-    logger.error('❌ Error in transformProjectData', {
+    void logger.error('❌ Error in transformProjectData', {
       error: errorMessage,
       errorType: typeof error,
       projectId,
@@ -167,7 +167,7 @@ export async function updateTenantRecord(
       data: updateData,
     })
 
-    logger.info('✅ Successfully updated tenant record', {
+    void logger.info('✅ Successfully updated tenant record', {
       projectId,
       tenantId: tenant.id,
       timestamp: new Date().toISOString(),
@@ -211,7 +211,7 @@ export async function createTenantRecord(
       data: newTenantData,
     })
 
-    logger.info('✅ Successfully created new tenant record', {
+    void logger.info('✅ Successfully created new tenant record', {
       projectId,
       tenantId: newTenant.id,
       timestamp: new Date().toISOString(),
@@ -238,7 +238,7 @@ export function handleSyncResponse(
   projectName: string,
   tenantId?: string,
 ): { data: any; error: null | string; success: boolean; timestamp: string } {
-  logger.info('🎉 Sync completed successfully', {
+  void logger.info('🎉 Sync completed successfully', {
     projectId,
     projectName,
     tenantId,

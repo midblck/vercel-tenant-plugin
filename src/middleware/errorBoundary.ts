@@ -25,12 +25,12 @@ export const errorBoundary = (
   _next: NextFunction,
 ) => {
   // Log the error with context
-  logger.error('Unhandled error in middleware', {
+  void logger.error('Unhandled error in middleware', {
     error: error.message,
     method: req.method || 'unknown',
     stack: error.stack,
     url: req.url || 'unknown',
-  })
+  });
 
   // Determine status code
   const statusCode = error.status || error.statusCode || 500
@@ -61,10 +61,10 @@ export const asyncHandler = <T extends Request, U extends Response>(
 
 // Not found handler for unmatched routes
 export const notFoundHandler = (req: Request, res: Response) => {
-  logger.warn('Route not found', {
+  void logger.warn('Route not found', {
     method: req.method || 'unknown',
     url: req.url || 'unknown',
-  })
+  });
 
   res.status(404).json({
     error: 'Route not found',
@@ -90,22 +90,22 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   const startTime = Date.now()
 
   // Log request start
-  logger.info('Request started', {
+  void logger.info('Request started', {
     method: req.method || 'unknown',
     url: req.url || 'unknown',
-  })
+  });
 
   // Override res.end to log response
   const originalEnd = res.end
   res.end = function (chunk?: any, encoding?: any) {
     const duration = Date.now() - startTime
 
-    logger.info('Request completed', {
+    void logger.info('Request completed', {
       duration: `${duration}ms`,
       method: req.method || 'unknown',
       statusCode: res.statusCode,
       url: req.url || 'unknown',
-    })
+    });
 
     originalEnd.call(this, chunk, encoding)
   }
@@ -140,11 +140,11 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
 export const requestTimeout = (timeoutMs: number = 30000) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const timeout = setTimeout(() => {
-      logger.warn('Request timeout', {
+      void logger.warn('Request timeout', {
         method: req.method || 'unknown',
         timeout: timeoutMs,
         url: req.url || 'unknown',
-      })
+      });
 
       if (!res.headersSent) {
         res.status(408).json({

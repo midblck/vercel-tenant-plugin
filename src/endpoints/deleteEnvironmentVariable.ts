@@ -37,6 +37,7 @@ export const deleteEnvironmentVariable: PayloadHandler = async (req) => {
     }
 
     // Get Vercel credentials
+     
     const { teamId: vercelTeamId, vercelToken } = await getVercelCredentials(req.payload)
 
     if (!vercelToken) {
@@ -70,7 +71,7 @@ export const deleteEnvironmentVariable: PayloadHandler = async (req) => {
 
     const _result = await response.json()
 
-    logger.envVars(`✅ Successfully deleted environment variable ${envVarId} from Vercel`, {
+    void logger.envVars(`✅ Successfully deleted environment variable ${envVarId} from Vercel`, {
       envVarId,
       projectId,
       teamId: finalTeamId,
@@ -81,7 +82,7 @@ export const deleteEnvironmentVariable: PayloadHandler = async (req) => {
       success: true,
     } as DeleteEnvVarResponse)
   } catch (error) {
-    logger.error('Error deleting environment variable', {
+    void logger.error('Error deleting environment variable', {
       error: error instanceof Error ? error.message : String(error),
     })
     return Response.json(
@@ -106,11 +107,13 @@ export const deleteEnvironmentVariablesDirect = async ({
   payload,
 }: {
   envVarIds: string[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any
   projectId: string
   teamId?: string
-  payload: any
 }) => {
   try {
+     
     const { teamId: vercelTeamId, vercelToken } = await getVercelCredentials(payload)
 
     if (!vercelToken) {
@@ -123,7 +126,7 @@ export const deleteEnvironmentVariablesDirect = async ({
     // Use teamId from request or fallback to credentials
     const finalTeamId = teamId || vercelTeamId
 
-    logger.envVars(`🗑️ Deleting ${envVarIds.length} environment variables from Vercel`, {
+    void logger.envVars(`🗑️ Deleting ${envVarIds.length} environment variables from Vercel`, {
       envVarIds,
       projectId,
       teamId: finalTeamId,
@@ -149,11 +152,11 @@ export const deleteEnvironmentVariablesDirect = async ({
           )
         }
 
-        logger.envVars(`✅ Successfully deleted environment variable ${envVarId} from Vercel`)
+        void logger.envVars(`✅ Successfully deleted environment variable ${envVarId} from Vercel`)
         return { envVarId, success: true }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
-        logger.error(`❌ Failed to delete environment variable ${envVarId}`, {
+        void logger.error(`❌ Failed to delete environment variable ${envVarId}`, {
           envVarId,
           error: errorMessage,
         })
@@ -168,11 +171,14 @@ export const deleteEnvironmentVariablesDirect = async ({
     const successfulDeletes = results.filter((r) => r.success).length
     const failedDeletes = results.filter((r) => !r.success).length
 
-    logger.envVars(`📊 Delete summary: ${successfulDeletes} successful, ${failedDeletes} failed`, {
-      successfulDeletes,
-      failedDeletes,
-      projectId,
-    })
+    void logger.envVars(
+      `📊 Delete summary: ${successfulDeletes} successful, ${failedDeletes} failed`,
+      {
+        successfulDeletes,
+        failedDeletes,
+        projectId,
+      },
+    )
 
     return {
       success: true,
@@ -181,7 +187,7 @@ export const deleteEnvironmentVariablesDirect = async ({
       failedDeletes,
     }
   } catch (error) {
-    logger.error('Error in deleteEnvironmentVariablesDirect', {
+    void logger.error('Error in deleteEnvironmentVariablesDirect', {
       error: error instanceof Error ? error.message : String(error),
     })
     return {

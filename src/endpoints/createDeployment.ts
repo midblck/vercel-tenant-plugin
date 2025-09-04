@@ -5,13 +5,13 @@ import { withErrorHandling } from '../utils/errors'
 import { getVercelCredentials } from './vercelUtils'
 
 export const createDeployment: PayloadHandler = async (req) => {
-  return withErrorHandling(async () => {
-    logger.deployment('Starting deployment creation...')
+  return await withErrorHandling(async () => {
+    void logger.deployment('Starting deployment creation...')
     const { deploymentData, tenantId } = (await req.json?.()) || {}
     const { payload } = req
     const { teamId, vercel } = await getVercelCredentials(payload, tenantId)
 
-    logger.deployment('Request params', { teamId, tenantId })
+    void logger.deployment('Request params', { teamId, tenantId })
 
     if (!tenantId) {
       return Response.json({ error: 'Missing tenantId parameter', success: false }, { status: 400 })
@@ -38,8 +38,8 @@ export const createDeployment: PayloadHandler = async (req) => {
       )
     }
 
-    logger.deployment('Creating deployment for tenant', { tenantName: tenant.name })
-    logger.deployment('Git repository info', {
+    void logger.deployment('Creating deployment for tenant', { tenantName: tenant.name })
+    void logger.deployment('Git repository info', {
       type: tenant.vercelProjectGitRepository?.type,
       branch: tenant.vercelProjectGitRepository?.branch,
       owner: tenant.vercelProjectGitRepository?.owner,
@@ -49,8 +49,8 @@ export const createDeployment: PayloadHandler = async (req) => {
     // Use the actual repoId from tenant collection if available
     const repoId = tenant.vercelProjectGitRepository?.repoId
 
-    logger.deployment('Using repoId from tenant', { repoId })
-    logger.deployment('Full tenant git data', {
+    void logger.deployment('Using repoId from tenant', { repoId })
+    void logger.deployment('Full tenant git data', {
       gitData: tenant.vercelProjectGitRepository,
     })
 
@@ -86,7 +86,7 @@ export const createDeployment: PayloadHandler = async (req) => {
     ) {
       const branch = tenant.vercelProjectGitRepository?.branch || 'main'
 
-      logger.deployment('Adding git source', {
+      void logger.deployment('Adding git source', {
         type: 'github',
         owner: tenant.vercelProjectGitRepository.owner,
         ref: branch,
@@ -100,22 +100,22 @@ export const createDeployment: PayloadHandler = async (req) => {
         repoId, // Use the actual repoId from tenant collection
       }
     } else {
-      logger.deployment('No git source specified - missing owner, repo, or repoId')
+      void logger.deployment('No git source specified - missing owner, repo, or repoId')
     }
 
-    logger.deployment('Deployment request body', { requestBody })
+    void logger.deployment('Deployment request body', { requestBody })
 
     // Create deployment on Vercel using git source only
-    logger.deployment('Triggering Vercel deployment...')
-    logger.deployment('Attempting deployment with git source...')
+    void logger.deployment('Triggering Vercel deployment...')
+    void logger.deployment('Attempting deployment with git source...')
 
     const result = await vercel.deployments.createDeployment({
       requestBody,
       teamId,
     })
 
-    logger.deployment('Deployment succeeded with git source')
-    logger.deployment('Vercel deployment triggered successfully', {
+    void logger.deployment('Deployment succeeded with git source')
+    void logger.deployment('Vercel deployment triggered successfully', {
       id: result.id,
       name: result.name,
       readyState: result.readyState,

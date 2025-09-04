@@ -139,7 +139,7 @@ export const createValidationMiddleware = (
       next()
     } catch (error) {
       // Simplified error handling for now
-      logger.error('Validation error', { endpoint: 'validation', target }, error as Error)
+      void logger.error('Validation error', { endpoint: 'validation', target }, error as Error);
     }
   }
 }

@@ -7,8 +7,24 @@ import { getVercelCredentials } from './vercelUtils'
 
 export const syncDeployments: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
+     
     const { teamId, vercel } = await getVercelCredentials(req.payload)
-    const { syncAll, tenantId } = (await req.json?.()) || {}
+
+    // Safely parse JSON request body
+    let syncAll, tenantId
+    try {
+      const body = await req.json?.()
+      if (body) {
+        syncAll = body.syncAll
+        tenantId = body.tenantId
+      }
+    } catch (error) {
+      // If JSON parsing fails, use empty object (default values)
+      void logger.debug('No JSON body or parsing failed, using defaults', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+
     const { payload } = req
 
     let tenants = []
@@ -50,7 +66,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
     // Progress tracking function
     const updateProgress = (tenantName: string, status: string) => {
       currentProgress++
-      logger.deployment(`🔄 [${currentProgress}/${tenants.length}] ${status}: ${tenantName}`)
+      void logger.deployment(`🔄 [${currentProgress}/${tenants.length}] ${status}: ${tenantName}`)
     }
 
     // Delete all existing sync deployment records before syncing new data
@@ -65,7 +81,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
       })
       totalDeleted = deleteResult.docs?.length || 0
     } catch (deleteError) {
-      logger.error('Error deleting existing sync records', {
+      void logger.error('Error deleting existing sync records', {
         error: deleteError instanceof Error ? deleteError.message : String(deleteError),
       })
     }
@@ -75,7 +91,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
       // Skip tenants that are not approved or inactive
       if (tenant.status !== 'approved' || tenant.isActive !== true) {
         totalSkippedInactive++
-        logger.deployment(
+        void logger.deployment(
           `⏭️ Skipping tenant ${tenant.name} - status: ${tenant.status}, isActive: ${tenant.isActive}`,
           {
             tenantId: tenant.id,
@@ -87,7 +103,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
         continue
       }
 
-      updateProgress(tenant.name, 'Processing')
+      void updateProgress(tenant.name, 'Processing');
 
       // Always use project ID for consistency
       const projectId = tenant.vercelProjectId
@@ -145,7 +161,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
                 },
               })
             } catch (updateError) {
-              logger.error(`Error updating existing deployment ${existingDoc.deploymentId}`, {
+              void logger.error(`Error updating existing deployment ${existingDoc.deploymentId}`, {
                 deploymentId: existingDoc.deploymentId,
                 error: updateError instanceof Error ? updateError.message : String(updateError),
               })
@@ -190,7 +206,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
               data: updatedDeploymentData,
             })
 
-            updateProgress(tenant.name, 'Updated')
+            void updateProgress(tenant.name, 'Updated');
             updatedCount++
 
             syncResults.push({
@@ -226,7 +242,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
               data: newDeploymentData,
             })
 
-            updateProgress(tenant.name, 'Created')
+            void updateProgress(tenant.name, 'Created');
             createdCount++
 
             syncResults.push({
@@ -257,7 +273,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
                   },
                 })
               } catch (updateError) {
-                logger.error(`Error updating recent deployment ${recentDeployment.id}`, {
+                void logger.error(`Error updating recent deployment ${recentDeployment.id}`, {
                   deploymentId: recentDeployment.id,
                   error: updateError instanceof Error ? updateError.message : String(updateError),
                 })
@@ -267,7 +283,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
 
           syncedCount++
         } catch (error) {
-          logger.error(`Error syncing deployment ${deployment.uid}`, {
+          void logger.error(`Error syncing deployment ${deployment.uid}`, {
             deploymentId: deployment.uid,
             error: error instanceof Error ? error.message : String(error),
           })
@@ -342,7 +358,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
 
             // Log status normalization for debugging
             if (status !== result) {
-              logger.debug('Deployment status normalized', {
+              void logger.debug('Deployment status normalized', {
                 deploymentId: latestDeployment.id,
                 normalizedStatus: result,
                 originalStatus: latestDeployment.status,
@@ -368,7 +384,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
         }
       }
     } catch (connectionError) {
-      logger.error('Error connecting deployments to tenants', {
+      void logger.error('Error connecting deployments to tenants', {
         error: connectionError instanceof Error ? connectionError.message : String(connectionError),
       })
     }
@@ -376,7 +392,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
     // Sync environment variables after deployment sync completes
     let envVarSyncResult = null
     try {
-      logger.info('Starting environment variable sync after deployment sync')
+      void logger.info('Starting environment variable sync after deployment sync')
 
       // Create a mock request for environment variable sync
       const envVarReq = {
@@ -390,19 +406,19 @@ export const syncDeployments: PayloadHandler = async (req) => {
       envVarSyncResult = await envVarResponse.json()
 
       if (envVarResponse.ok && envVarSyncResult.success) {
-        logger.info('Environment variable sync completed successfully', {
+        void logger.info('Environment variable sync completed successfully', {
           newEnvVars: envVarSyncResult.data?.newEnvVars || 0,
           skippedEnvVars: envVarSyncResult.data?.skippedEnvVars || 0,
           updatedEnvVars: envVarSyncResult.data?.updatedEnvVars || 0,
         })
       } else {
-        logger.error('Environment variable sync failed', {
+        void logger.error('Environment variable sync failed', {
           error: envVarSyncResult.error || 'Unknown error',
         })
         // Don't fail the entire deployment sync, just log the error
       }
     } catch (envVarError) {
-      logger.error('Error during environment variable sync', {
+      void logger.error('Error during environment variable sync', {
         error: envVarError instanceof Error ? envVarError.message : String(envVarError),
       })
       // Don't fail the entire deployment sync, just log the error

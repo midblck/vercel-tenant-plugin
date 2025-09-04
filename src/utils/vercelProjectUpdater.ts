@@ -106,7 +106,7 @@ export function handleProjectUpdateResponse(
   tenantData: any,
   requestBody: any,
 ): any {
-  logger.info('✅ Successfully updated Vercel project', {
+  void logger.info('✅ Successfully updated Vercel project', {
     projectId,
     tenantId: tenantData.id,
     tenantName: tenantData.name,
@@ -145,7 +145,7 @@ export function logFilteredFields(tenantData: any, projectId: string, requestBod
     'ssoProtection', // Read-only security settings
   ].filter((field) => tenantData[field] !== undefined)
 
-  logger.debug('📤 Request body for Vercel project update', {
+  void logger.debug('📤 Request body for Vercel project update', {
     filteredOutFields,
     projectId,
     requestBodyKeys: Object.keys(requestBody),
