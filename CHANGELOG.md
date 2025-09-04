@@ -17,6 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed component registration on tenant collection for tenant sync
 
+## [0.1.8] - 2025-01-04
+
+### Fixed
+
+- Fixed TypeScript errors in endpoints and hooks
+- Resolved parameter naming issues in deleteEnvironmentVariable endpoint
+- Fixed function signature in deploymentHooks
+- Corrected getVercelCredentials calls in listProjects endpoint
+
+### Changed
+
+- Updated deleteEnvironmentVariablesDirect function to accept payload parameter
+- Enhanced error handling in environment variable deletion process
+
 ## [0.1.7] - 2025-01-03
 
 ### Fixed
