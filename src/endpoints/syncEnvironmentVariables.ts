@@ -10,7 +10,7 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
     // Create tenant-aware logger
     const logger = createTenantAwareLogger(req.payload)
 
-     
+     // eslint-disable-next-line @typescript-eslint/await-thenable
     const { teamId, vercel } = await getVercelCredentials(req.payload)
 
     // Safely parse JSON request body

@@ -89,6 +89,7 @@ export const syncSingleProject: PayloadHandler = async (req) => {
       timestamp: new Date().toISOString(),
     })
 
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const { teamId, vercelToken } = await getVercelCredentials(req.payload)
     const payload = req.payload
 

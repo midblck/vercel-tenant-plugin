@@ -37,7 +37,7 @@ export const deleteEnvironmentVariable: PayloadHandler = async (req) => {
     }
 
     // Get Vercel credentials
-     
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const { teamId: vercelTeamId, vercelToken } = await getVercelCredentials(req.payload)
 
     if (!vercelToken) {
@@ -113,7 +113,6 @@ export const deleteEnvironmentVariablesDirect = async ({
   teamId?: string
 }) => {
   try {
-     
     const { teamId: vercelTeamId, vercelToken } = await getVercelCredentials(payload)
 
     if (!vercelToken) {

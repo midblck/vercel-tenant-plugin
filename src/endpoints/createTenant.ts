@@ -20,7 +20,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
     // Create tenant-aware logger
     const logger = createTenantAwareLogger(payload)
 
-     
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const { teamId, vercelToken } = await getVercelCredentials(payload)
     // const currentTimestamp = Date.now() // Unused variable
 
@@ -93,7 +93,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
     }
 
     // STEP 1: Create Vercel project FIRST (before tenant collection)
-    void logger.info(`Creating Vercel project for "${name}"...`);
+    void logger.info(`Creating Vercel project for "${name}"...`)
 
     const vercelResult = await createVercelProject(
       { teamId, vercelToken },
@@ -115,7 +115,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
       void logger.error(`Vercel project creation failed for "${name}"`, {
         error: vercelResult.error,
         tenantName: name,
-      });
+      })
 
       // If Vercel project creation fails, return error WITHOUT creating tenant
       // This prevents orphaned tenant records with failed Vercel projects
@@ -130,12 +130,12 @@ export const createNewTenant: PayloadHandler = async (req) => {
     }
 
     const vercelProject = vercelResult.data as EnhancedVercelProject
-    void logger.info(`Vercel project created successfully: ${vercelProject.id}`);
+    void logger.info(`Vercel project created successfully: ${vercelProject.id}`)
 
     // IMMEDIATE SYNC: Call syncSingleProject right after tenant creation to get complete data
     void logger.info(
       `🚀 Creating tenant with basic Vercel data, will sync complete data immediately after creation`,
-    );
+    )
 
     // STEP 2: Fetch domains for the newly created project
     const domainsResult = await getProjectDomains({ teamId, vercelToken }, vercelProject.id)
@@ -144,7 +144,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
     void logger.info(`Fetched domains for new project ${vercelProject.name}`, {
       domainsCount: projectDomains?.domains?.length || 0,
       success: domainsResult.success,
-    });
+    })
 
     // Ensure projectDomains is an array and extract the domains property
     const domainsArray = Array.isArray(projectDomains)
@@ -212,7 +212,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
             domainsArray,
             projectName: vercelProject.name,
             projectUrl: vercelProject.url,
-          });
+          })
 
           return url
         })(),
@@ -230,7 +230,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
         data: tenantData,
       })
 
-      void logger.info(`Tenant record created successfully: ${tenant.id}`);
+      void logger.info(`Tenant record created successfully: ${tenant.id}`)
     } else {
       // Update existing tenant with Vercel project details
       const updatedTenantData = {
@@ -284,7 +284,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
             domainsArray,
             projectName: vercelProject.name,
             projectUrl: vercelProject.url,
-          });
+          })
 
           return url
         })(),
@@ -332,11 +332,11 @@ export const createNewTenant: PayloadHandler = async (req) => {
         data: updatedTenantData,
       })
 
-      void logger.info(`Existing tenant updated with Vercel project details: ${tenant.id}`);
+      void logger.info(`Existing tenant updated with Vercel project details: ${tenant.id}`)
     }
 
     // 🚀 ENHANCED SYNC: Wait for complete Vercel data before returning
-    void logger.info(`🔄 Fetching complete Vercel data for tenant "${name}"...`);
+    void logger.info(`🔄 Fetching complete Vercel data for tenant "${name}"...`)
 
     try {
       const { syncSingleProject } = await import('./syncSingleProject')
@@ -369,7 +369,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
             projectId: vercelProject.id,
             repoId: updatedTenant.vercelProjectGitRepository.repoId,
             tenantId: tenant.id,
-          });
+          })
 
           // Update tenant reference to the fully synced version
           tenant = updatedTenant
@@ -392,7 +392,7 @@ export const createNewTenant: PayloadHandler = async (req) => {
           id: tenant.id,
           collection: 'tenant',
         })
-        void logger.info(`🗑️ Cleaned up tenant "${name}" after sync failure`);
+        void logger.info(`🗑️ Cleaned up tenant "${name}" after sync failure`)
       } catch (cleanupError) {
         logger.error(`❌ Failed to clean up tenant "${name}" after sync failure`, {
           cleanupError: cleanupError instanceof Error ? cleanupError.message : String(cleanupError),

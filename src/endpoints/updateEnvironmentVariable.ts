@@ -202,6 +202,7 @@ export const updateEnvironmentVariable: PayloadHandler = async (req) => {
     // PROCEED WITH UPDATE: We have a vercelId, so update existing variable
 
     // Get Vercel credentials
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const { teamId, vercelToken } = await getVercelCredentials(req.payload)
 
     // Generate secret if value is null/empty and type is encrypted

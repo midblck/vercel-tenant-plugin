@@ -7,7 +7,7 @@ import { getVercelCredentials } from './vercelUtils'
 
 export const syncDeployments: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
-     
+     // eslint-disable-next-line @typescript-eslint/await-thenable
     const { teamId, vercel } = await getVercelCredentials(req.payload)
 
     // Safely parse JSON request body

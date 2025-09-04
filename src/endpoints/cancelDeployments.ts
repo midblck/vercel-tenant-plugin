@@ -9,6 +9,7 @@ export const cancelDeployments: PayloadHandler = async (req) => {
   return await withErrorHandling(async () => {
     void logger.deployment('Starting queued deployments cancellation...')
 
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const { teamId, vercel } = await getVercelCredentials(req.payload)
 
     // Safely parse request body, handling empty or malformed JSON
