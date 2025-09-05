@@ -17,6 +17,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed component registration on tenant collection for tenant sync
 
+## [0.1.10] - 2025-01-05
+
+### Fixed
+
+- **Critical Fix**: Resolved double deployment issue when updating environment variables with auto-deploy enabled
+- Added 30-second protection window to prevent multiple auto-deployments for the same environment variable update
+- Improved hook execution tracking to prevent duplicate Vercel deployments
+- Enhanced logging to show when auto-deployments are skipped due to recent triggers
+
+### Changed
+
+- Modified `envvarsAfterChangeHook` to directly trigger deployments instead of creating intermediate database records
+- Added document-specific auto-deployment tracking using both document ID and tenant ID
+- Updated deployment trigger logic to eliminate hook chain reactions
+
 ## [0.1.9] - 2025-01-04
 
 ### Fixed
