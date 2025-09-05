@@ -1,7 +1,7 @@
 /* eslint-disable perfectionist/sort-objects */
 import type { PayloadHandler } from 'payload'
 
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 import { logger } from '../utils/logger'
 
 interface DeleteEnvVarRequest {
@@ -38,7 +38,17 @@ export const deleteEnvironmentVariable: PayloadHandler = async (req) => {
 
     // Get Vercel credentials
     // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId: vercelTeamId, vercelToken } = await getVercelCredentials(req.payload)
+    const {
+      teamId: vercelTeamId,
+      vercelToken,
+      source,
+      isValid,
+    } = await getVercelCredentialsForTenant(req.payload)
+
+    void logger.info(`Using credentials for environment variable deletion`, {
+      source: source,
+      isValid: isValid,
+    })
 
     if (!vercelToken) {
       return Response.json(
@@ -113,7 +123,17 @@ export const deleteEnvironmentVariablesDirect = async ({
   teamId?: string
 }) => {
   try {
-    const { teamId: vercelTeamId, vercelToken } = await getVercelCredentials(payload)
+    const {
+      teamId: vercelTeamId,
+      vercelToken,
+      source,
+      isValid,
+    } = await getVercelCredentialsForTenant(payload)
+
+    void logger.info(`Using credentials for environment variable deletion (hook)`, {
+      source: source,
+      isValid: isValid,
+    })
 
     if (!vercelToken) {
       return {

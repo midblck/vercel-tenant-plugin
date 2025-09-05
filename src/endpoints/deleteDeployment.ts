@@ -2,13 +2,18 @@ import type { PayloadHandler } from 'payload'
 
 import { logger } from '../utils/logger'
 import { withErrorHandling } from '../utils/errors'
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 
 export const deleteDeployment: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
     void logger.deployment('Starting deployment deletion...')
     // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercel } = await getVercelCredentials(req.payload)
+    const { teamId, vercel, source, isValid } = await getVercelCredentialsForTenant(req.payload)
+
+    void logger.info(`Using credentials for deployment deletion`, {
+      source: source,
+      isValid: isValid,
+    })
 
     // Safely parse JSON request body
     let deploymentId, tenantDeploymentId

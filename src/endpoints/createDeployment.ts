@@ -2,14 +2,20 @@ import type { PayloadHandler } from 'payload'
 
 import { logger } from '../utils/logger'
 import { withErrorHandling } from '../utils/errors'
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 
 export const createDeployment: PayloadHandler = async (req) => {
   return await withErrorHandling(async () => {
     void logger.deployment('Starting deployment creation...')
     const { deploymentData, tenantId } = (await req.json?.()) || {}
     const { payload } = req
-    const { teamId, vercel } = await getVercelCredentials(payload, tenantId)
+    const { teamId, vercel, source, isValid } = await getVercelCredentialsForTenant(payload, tenantId)
+    
+    void logger.info(`Using credentials for deployment creation`, {
+      source: source,
+      tenantId: tenantId,
+      isValid: isValid,
+    })
 
     void logger.deployment('Request params', { teamId, tenantId })
 

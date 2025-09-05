@@ -6,7 +6,7 @@ import { withErrorHandling } from '../utils/errors'
 import type { CreateTenantRequest, EnhancedVercelProject } from '../types'
 
 import { createVercelProject, getProjectDomains } from './vercelClient'
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 
 // ============================================================================
 // CREATE NEW TENANT ENDPOINT
@@ -21,7 +21,12 @@ export const createNewTenant: PayloadHandler = async (req) => {
     const logger = createTenantAwareLogger(payload)
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercelToken } = await getVercelCredentials(payload)
+    const { teamId, vercelToken, source, isValid } = await getVercelCredentialsForTenant(payload)
+
+    void logger.info(`Using credentials for tenant creation`, {
+      source: source,
+      isValid: isValid,
+    })
     // const currentTimestamp = Date.now() // Unused variable
 
     // Parse the request body

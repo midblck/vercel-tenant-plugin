@@ -4,7 +4,7 @@ import type { PayloadHandler } from 'payload'
 
 import { logger } from '../utils/logger'
 import { withErrorHandling } from '../utils/errors'
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 import type {
   CreateEnvVarsRequest,
   CreateEnvVarsResponse,
@@ -90,8 +90,16 @@ export const createEnvironmentVariablesDirect = async ({
   tenantId: string
 }) => {
   try {
-     
-    const { teamId, vercelToken } = await getVercelCredentials(payload as any, tenantId)
+    const { teamId, vercelToken, source, isValid } = await getVercelCredentialsForTenant(
+      payload as any,
+      tenantId,
+    )
+
+    void logger.info(`Using credentials for environment variable creation`, {
+      source: source,
+      tenantId: tenantId,
+      isValid: isValid,
+    })
 
     if (!vercelToken) {
       return {
@@ -284,8 +292,17 @@ export const createEnvironmentVariables: PayloadHandler = async (req) => {
     const { existingDocId, existingEnvVars, tenantId } = body as CreateEnvVarsRequest
 
     const { payload } = req
-     
-    const { teamId, vercelToken } = await getVercelCredentials(payload as any)
+
+    const { teamId, vercelToken, source, isValid } = await getVercelCredentialsForTenant(
+      payload as any,
+      tenantId,
+    )
+
+    void logger.info(`Using credentials for bulk environment variable creation`, {
+      source: source,
+      isValid: isValid,
+      tenantId: tenantId,
+    })
     const { Vercel } = await import('@vercel/sdk')
     const vercel = new Vercel({ bearerToken: vercelToken })
 

@@ -8,7 +8,7 @@ import type {
 } from 'payload'
 
 import { updateProjectCrons } from '../endpoints/vercelClient'
-import { getVercelCredentials } from '../endpoints/vercelUtils'
+import { getVercelCredentials, getVercelCredentialsForTenant } from '../endpoints/vercelUtils'
 import { logger } from '../utils/logger'
 
 // Type the function properly to avoid linter issues
@@ -84,11 +84,29 @@ export const afterChangeCronHook: CollectionAfterChangeHook = async ({
       return doc
     }
 
-    // Get Vercel credentials
-    const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
-      req.payload,
-      doc.id,
-    )
+    // Get Vercel credentials for this specific tenant
+    let isValid, source, teamId, vercelToken
+    try {
+      const credentials = await getVercelCredentialsForTenant(req.payload, doc.id)
+      teamId = credentials.teamId
+      vercelToken = credentials.vercelToken
+      source = credentials.source
+      isValid = credentials.isValid
+
+      void logger.info(`Using credentials for cron update`, {
+        isValid,
+        source,
+        tenantId: doc.id,
+        tenantName: doc.name,
+      })
+    } catch (error) {
+      void logger.error(`Failed to get tenant-specific credentials for cron update`, {
+        error: error instanceof Error ? error.message : String(error),
+        tenantId: doc.id,
+        tenantName: doc.name,
+      })
+      return doc // Skip cron update if credentials fail
+    }
 
     // Update cron status in Vercel (enabled = !currentDisableCron)
     await updateProjectCrons(
@@ -209,10 +227,28 @@ export const syncTenantToVercelHook: CollectionAfterChangeHook = ({
       const { updateVercelProjectComprehensive } = await import('../endpoints/vercelClient')
       const { getVercelCredentials } = await import('../endpoints/vercelUtils')
 
-      const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
-        req.payload,
-        doc.id,
-      )
+      let isValid, source, teamId, vercelToken
+      try {
+        const credentials = await getVercelCredentialsForTenant(req.payload, doc.id)
+        teamId = credentials.teamId
+        vercelToken = credentials.vercelToken
+        source = credentials.source
+        isValid = credentials.isValid
+
+        void logger.info(`Using credentials for tenant sync to Vercel`, {
+          isValid,
+          source,
+          tenantId: doc.id,
+          tenantName: doc.name,
+        })
+      } catch (error) {
+        void logger.error(`Failed to get tenant-specific credentials for tenant sync`, {
+          error: error instanceof Error ? error.message : String(error),
+          tenantId: doc.id,
+          tenantName: doc.name,
+        })
+        return // Skip sync if credentials fail
+      }
 
       if (!vercelToken) {
         void logger.error('Vercel token not found, cannot update Vercel project', {
@@ -291,9 +327,31 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
   if (operation === 'create' && data?.status === 'approved' && !data?.vercelProjectId) {
     try {
       // Get Vercel credentials using utility function
-      const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
-        req.payload,
-      )
+      let isValid, source, teamId, vercelToken
+      try {
+        const credentials = await getVercelCredentialsForTenant(req.payload)
+        teamId = credentials.teamId
+        vercelToken = credentials.vercelToken
+        source = credentials.source
+        isValid = credentials.isValid
+
+        void logger.info(`Using credentials for tenant creation`, {
+          isValid,
+          source,
+          tenantName: data.name,
+        })
+      } catch (error) {
+        void logger.error(`Failed to get credentials for tenant creation`, {
+          error: error instanceof Error ? error.message : String(error),
+          tenantName: data.name,
+        })
+        // Don't fail tenant creation if credentials fail, use global fallback
+        const globalCreds = await getVercelCredentials(req.payload)
+        teamId = globalCreds.teamId
+        vercelToken = globalCreds.vercelToken
+        source = 'global-fallback'
+        isValid = true
+      }
 
       void logger.info(`Creating Vercel project for tenant "${data.name}"`, {
         tenantName: data.name,
@@ -395,10 +453,33 @@ export const tenantBeforeChangeHook: CollectionBeforeChangeHook = async ({
   if (operation === 'update' && data?.status === 'approved' && originalDoc?.status === 'draft') {
     try {
       // Get Vercel credentials using utility function
-      const { teamId, vercelToken } = await (getVercelCredentials as GetVercelCredentials)(
-        req.payload,
-        originalDoc.id,
-      )
+      let isValid, source, teamId, vercelToken
+      try {
+        const credentials = await getVercelCredentialsForTenant(req.payload, originalDoc.id)
+        teamId = credentials.teamId
+        vercelToken = credentials.vercelToken
+        source = credentials.source
+        isValid = credentials.isValid
+
+        void logger.info(`Using credentials for tenant status change`, {
+          isValid,
+          source,
+          tenantId: originalDoc.id,
+          tenantName: originalDoc.name,
+        })
+      } catch (error) {
+        void logger.error(`Failed to get tenant-specific credentials for status change`, {
+          error: error instanceof Error ? error.message : String(error),
+          tenantId: originalDoc.id,
+          tenantName: originalDoc.name,
+        })
+        // Don't fail status change if credentials fail, use global fallback
+        const globalCreds = await getVercelCredentials(req.payload)
+        teamId = globalCreds.teamId
+        vercelToken = globalCreds.vercelToken
+        source = 'global-fallback'
+        isValid = true
+      }
 
       // Check if tenant already has a Vercel project
       if (originalDoc.vercelProjectId) {

@@ -2,7 +2,8 @@
 import type { PayloadHandler } from 'payload'
 
 import { getVercelProjects } from './vercelClient'
-import { getVercelCredentials, transformVercelProject } from './vercelUtils'
+import { getVercelCredentialsForTenant, transformVercelProject } from './vercelUtils'
+import { logger } from '../utils/logger'
 
 // ============================================================================
 // LIST PROJECTS ENDPOINT
@@ -10,7 +11,14 @@ import { getVercelCredentials, transformVercelProject } from './vercelUtils'
 
 export const listProjects: PayloadHandler = async (_req) => {
   try {
-    const { teamId, vercelToken } = await getVercelCredentials(_req.payload)
+    const { teamId, vercelToken, source, isValid } = await getVercelCredentialsForTenant(
+      _req.payload,
+    )
+
+    void logger.info(`Using credentials for project listing`, {
+      source: source,
+      isValid: isValid,
+    })
 
     // Debug: Log token info (without exposing the full token) - removed for production
 

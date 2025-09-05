@@ -879,69 +879,93 @@ export const envvarsAfterChangeHook: CollectionAfterChangeHook = async ({
       // AUTO-DEPLOY LOGIC: Check if autodeploy is enabled and trigger deployment
       if (doc.autodeploy) {
         const _autoDeployTenantId = typeof doc.tenant === 'string' ? doc.tenant : doc.tenant?.id
-        try {
-          void logger.envVars('Autodeploy enabled, checking tenant status...')
 
-          // Get the tenant to check if it has approved status and isActive
-          const tenant = await payload.findByID({
-            id: tenantId,
-            collection: 'tenant',
-          })
+        // Additional protection: Check if auto-deployment was already triggered recently
+        const autoDeployKey = `autodeploy-${doc.id}-${tenantId}`
+        const lastAutoDeployTime = global.rapidUpdateCache?.[autoDeployKey]
+        const now = Date.now()
 
-          if (!tenant || tenant.status !== 'approved' || tenant.isActive !== true) {
-            void logger.envVars('Tenant not approved or inactive, skipping auto-deploy')
-          } else if (!tenant.vercelProjectId) {
-            void logger.envVars('Tenant missing Vercel project ID, skipping auto-deploy')
-          } else if (
-            !tenant.vercelProjectGitRepository?.owner ||
-            !tenant.vercelProjectGitRepository?.repo ||
-            !tenant.vercelProjectGitRepository?.repoId
-          ) {
-            void logger.envVars('Tenant missing git repository information, skipping auto-deploy')
-          } else {
-            void logger.envVars('Tenant ready for auto-deploy, creating deployment record...')
-
-            // Create deployment record first (without Vercel deployment info)
-            // Use a small delay to ensure environment variables are fully saved
-            setTimeout(async () => {
-              try {
-                const _deploymentRecord = await payload.create({
-                  collection: 'tenant-deployment',
-                  data: {
-                    environment: doc.environment || 'production',
-                    meta: {
-                      operation,
-                      source: 'envvars-autodeploy',
-                      timestamp: new Date().toISOString(),
-                    },
-                    status: 'queued',
-                    tenant: tenantId,
-                    triggerType: 'auto',
-                  },
-                })
-
-                void logger.envVars('Deployment record created successfully')
-                void logger.envVars(
-                  'Deployment will be triggered automatically by deploymentTriggerHook',
-                )
-
-                // Note: The deploymentTriggerHook will handle the actual Vercel deployment
-                // We don't need to trigger it manually here to avoid conflicts
-              } catch (createError) {
-                void logger.error(
-                  `Error creating deployment record: ${createError instanceof Error ? createError.message : String(createError)}`,
-                )
-                // Don't throw error here as the main operation already succeeded
-                // Just log the failure for monitoring
-              }
-            }, 2000) // 2 second delay to ensure environment variables are fully saved
-          }
-        } catch (error) {
-          void logger.error(
-            `Error in auto-deploy logic: ${error instanceof Error ? error.message : String(error)}`,
+        if (lastAutoDeployTime && now - lastAutoDeployTime < 30000) {
+          // 30 seconds protection
+          void logger.envVars(
+            `⏭️ Skipping auto-deploy - already triggered recently (${Math.round((now - lastAutoDeployTime) / 1000)}s ago)`,
           )
-          // Don't throw error here as the main operation already succeeded
-          // Just log the failure for monitoring
+        } else {
+          // Set the auto-deploy marker
+          if (!global.rapidUpdateCache) {
+            global.rapidUpdateCache = {}
+          }
+          global.rapidUpdateCache[autoDeployKey] = now
+
+          try {
+            void logger.envVars('Autodeploy enabled, checking tenant status...')
+
+            // Get the tenant to check if it has approved status and isActive
+            const tenant = await payload.findByID({
+              id: tenantId,
+              collection: 'tenant',
+            })
+
+            if (!tenant || tenant.status !== 'approved' || tenant.isActive !== true) {
+              void logger.envVars('Tenant not approved or inactive, skipping auto-deploy')
+            } else if (!tenant.vercelProjectId) {
+              void logger.envVars('Tenant missing Vercel project ID, skipping auto-deploy')
+            } else if (
+              !tenant.vercelProjectGitRepository?.owner ||
+              !tenant.vercelProjectGitRepository?.repo ||
+              !tenant.vercelProjectGitRepository?.repoId
+            ) {
+              void logger.envVars('Tenant missing git repository information, skipping auto-deploy')
+            } else {
+              void logger.envVars('Tenant ready for auto-deploy, triggering deployment...')
+
+              // Directly trigger deployment instead of creating deployment record
+              // This prevents the hook chain reaction that causes double deployments
+              setTimeout(async () => {
+                try {
+                  const { createDeployment } = await import('../endpoints/createDeployment')
+
+                  const mockReq = {
+                    json: () =>
+                      Promise.resolve({
+                        deploymentData: {
+                          name: `${tenant.name}-autodeploy`,
+                          target: 'production',
+                        },
+                        tenantId,
+                      }),
+                    payload,
+                  } as any
+
+                  const result = await createDeployment(mockReq)
+                  const resultData = await result.json()
+
+                  if (result.status === 200 && resultData.success) {
+                    void logger.envVars('Auto-deployment triggered successfully')
+                  } else {
+                    void logger.error('Auto-deployment failed', {
+                      error: resultData.error || 'Unknown error',
+                      tenantId,
+                    })
+                  }
+                } catch (deploymentError) {
+                  void logger.error('Error triggering auto-deployment', {
+                    error:
+                      deploymentError instanceof Error
+                        ? deploymentError.message
+                        : String(deploymentError),
+                    tenantId,
+                  })
+                }
+              }, 2000) // 2 second delay to ensure environment variables are fully saved
+            }
+          } catch (error) {
+            void logger.error(
+              `Error in auto-deploy logic: ${error instanceof Error ? error.message : String(error)}`,
+            )
+            // Don't throw error here as the main operation already succeeded
+            // Just log the failure for monitoring
+          }
         }
       }
 

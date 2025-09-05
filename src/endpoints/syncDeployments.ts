@@ -3,12 +3,14 @@ import type { PayloadHandler } from 'payload'
 
 import { logger } from '../utils/logger'
 import { withErrorHandling } from '../utils/errors'
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 
 export const syncDeployments: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
-     // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercel } = await getVercelCredentials(req.payload)
+    // Get global credentials for tenants without overrides
+    const globalCredentials = await getVercelCredentialsForTenant(req.payload)
+    const globalVercel = globalCredentials.vercel
+    const globalTeamId = globalCredentials.teamId
 
     // Safely parse JSON request body
     let syncAll, tenantId
@@ -103,12 +105,40 @@ export const syncDeployments: PayloadHandler = async (req) => {
         continue
       }
 
-      void updateProgress(tenant.name, 'Processing');
+      void updateProgress(tenant.name, 'Processing')
 
       // Always use project ID for consistency
       const projectId = tenant.vercelProjectId
 
-      // Get deployments from Vercel (only 3 latest)
+      // Get tenant-specific credentials
+      let teamId, vercel
+      try {
+        const tenantCredentials = await getVercelCredentialsForTenant(
+          req.payload,
+          String(tenant.id),
+        )
+        vercel = tenantCredentials.vercel
+        teamId = tenantCredentials.teamId
+
+        void logger.info(`Using credentials for tenant ${tenant.name}`, {
+          isValid: 'isValid' in tenantCredentials ? tenantCredentials.isValid : true,
+          source: 'source' in tenantCredentials ? tenantCredentials.source : 'unknown',
+          tenantId: tenant.id,
+        })
+      } catch (error) {
+        void logger.warn(
+          `Failed to get tenant-specific credentials for ${tenant.name}, using global`,
+          {
+            error: error instanceof Error ? error.message : String(error),
+            tenantId: tenant.id,
+          },
+        )
+        // Fall back to global credentials
+        vercel = globalVercel
+        teamId = globalTeamId
+      }
+
+      // Get deployments from Vercel (only 1 latest)
       const result = await vercel.deployments.getDeployments({ limit: 1, projectId, teamId })
       const deployments = result?.deployments || []
 
@@ -206,7 +236,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
               data: updatedDeploymentData,
             })
 
-            void updateProgress(tenant.name, 'Updated');
+            void updateProgress(tenant.name, 'Updated')
             updatedCount++
 
             syncResults.push({
@@ -242,7 +272,7 @@ export const syncDeployments: PayloadHandler = async (req) => {
               data: newDeploymentData,
             })
 
-            void updateProgress(tenant.name, 'Created');
+            void updateProgress(tenant.name, 'Created')
             createdCount++
 
             syncResults.push({

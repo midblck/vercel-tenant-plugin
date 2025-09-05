@@ -75,6 +75,8 @@ export const deploymentDeleteHook: CollectionBeforeDeleteHook = async ({ id, req
 /**
  * After-change hook for tenant deployment collection
  * Automatically triggers Vercel deployment when a new deployment record is created by user
+ * Note: Auto deployments from environment variables are handled directly by envvarsAfterChangeHook
+ * to prevent double deployment issues
  * @param doc - The document that was changed
  * @param operation - The operation type (create or update)
  * @param req - The request object

@@ -1,7 +1,7 @@
 import type { PayloadHandler } from 'payload'
 
 // import { getProjectDomains } from './vercelClient' // Unused import
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 import { logger } from '../utils/logger'
 // import { mapVercelDataToTenant } from '../utils/vercelDataMapper' // Unused import
 import {
@@ -90,7 +90,14 @@ export const syncSingleProject: PayloadHandler = async (req) => {
     })
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercelToken } = await getVercelCredentials(req.payload)
+    const { teamId, vercelToken, source, isValid } = await getVercelCredentialsForTenant(
+      req.payload,
+    )
+
+    void logger.info(`Using credentials for single project sync`, {
+      source: source,
+      isValid: isValid,
+    })
     const payload = req.payload
 
     // Validate request parameters

@@ -3,7 +3,7 @@ import type { PayloadHandler } from 'payload'
 
 import { createTenantAwareLogger } from '../utils/loggerInit'
 import { withErrorHandling } from '../utils/errors'
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 
 export const syncEnvironmentVariables: PayloadHandler = async (req) => {
   return withErrorHandling(async () => {
@@ -11,7 +11,12 @@ export const syncEnvironmentVariables: PayloadHandler = async (req) => {
     const logger = createTenantAwareLogger(req.payload)
 
      // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercel } = await getVercelCredentials(req.payload)
+    const { teamId, vercel, source, isValid } = await getVercelCredentialsForTenant(req.payload)
+    
+    void logger.info(`Using credentials for environment variable sync`, {
+      source: source,
+      isValid: isValid,
+    })
 
     // Safely parse JSON request body
     let syncAll, tenantId

@@ -3,14 +3,19 @@ import type { PayloadHandler } from 'payload'
 
 import { logger } from '../utils/logger'
 import { withErrorHandling } from '../utils/errors'
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 
 export const cancelDeployments: PayloadHandler = async (req) => {
   return await withErrorHandling(async () => {
     void logger.deployment('Starting queued deployments cancellation...')
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercel } = await getVercelCredentials(req.payload)
+    const { teamId, vercel, source, isValid } = await getVercelCredentialsForTenant(req.payload)
+
+    void logger.info(`Using credentials for deployment cancellation`, {
+      source: source,
+      isValid: isValid,
+    })
 
     // Safely parse request body, handling empty or malformed JSON
     let tenantId: string | undefined

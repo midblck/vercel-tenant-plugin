@@ -231,6 +231,7 @@ export const tenantEnvironmentVariableCollection: CollectionConfig = {
           type: 'array',
           admin: {
             description: 'Target environments in Vercel',
+            initCollapsed: true,
           },
           defaultValue: [
             { target: 'production' },
@@ -244,13 +245,6 @@ export const tenantEnvironmentVariableCollection: CollectionConfig = {
               required: true,
             },
           ],
-        },
-        {
-          name: 'gitBranch',
-          type: 'text',
-          admin: {
-            description: 'Git branch this variable applies to (if any)',
-          },
         },
       ],
     },

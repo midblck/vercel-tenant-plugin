@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PayloadHandler } from 'payload'
 
-import { getVercelCredentials } from './vercelUtils'
+import { getVercelCredentialsForTenant } from './vercelUtils'
 import { logger } from '../utils/logger'
 
 interface UpdateEnvVarRequest {
@@ -201,9 +201,37 @@ export const updateEnvironmentVariable: PayloadHandler = async (req) => {
 
     // PROCEED WITH UPDATE: We have a vercelId, so update existing variable
 
-    // Get Vercel credentials
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercelToken } = await getVercelCredentials(req.payload)
+    // Get Vercel credentials for this specific tenant
+    let teamId, vercelToken, source, isValid
+    try {
+      // eslint-disable-next-line @typescript-eslint/await-thenable
+      const credentials = await getVercelCredentialsForTenant(req.payload, tenantId)
+      teamId = credentials.teamId
+      vercelToken = credentials.vercelToken
+      source = credentials.source
+      isValid = credentials.isValid
+
+      void logger.info(`Using credentials for environment variable update`, {
+        source: source,
+        isValid: isValid,
+        tenantId: tenantId,
+      })
+    } catch (error) {
+      void logger.error(
+        `Failed to get tenant-specific credentials for environment variable update`,
+        {
+          tenantId: tenantId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      )
+      return Response.json(
+        {
+          message: `Failed to get Vercel credentials for tenant ${tenantId}`,
+          success: false,
+        } as UpdateEnvVarResponse,
+        { status: 500 },
+      )
+    }
 
     // Generate secret if value is null/empty and type is encrypted
     let valueToSend = updates.value !== undefined ? updates.value : envVar.value
