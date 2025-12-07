@@ -205,7 +205,9 @@ export const BeforeDashboardClient = () => {
       } else {
         const errorData = await response.json()
         void logger.error('Sync Projects Error', errorData)
-        let errorMessage = errorData.error || 'Failed to sync projects'
+        const errorMessageRaw = errorData?.error ?? 'Failed to sync projects'
+        let errorMessage =
+          typeof errorMessageRaw === 'string' ? errorMessageRaw : JSON.stringify(errorMessageRaw)
 
         // Check for specific error types
         if (errorMessage.includes('Missing tenantId or syncAll parameter')) {
@@ -325,7 +327,9 @@ export const BeforeDashboardClient = () => {
       } else {
         const errorData = await response.json()
         void logger.error('Sync Deployments Error', errorData)
-        let errorMessage = errorData.error || 'Failed to sync deployments'
+        const errorMessageRaw = errorData?.error ?? 'Failed to sync deployments'
+        let errorMessage =
+          typeof errorMessageRaw === 'string' ? errorMessageRaw : JSON.stringify(errorMessageRaw)
 
         // Check for specific error types
         if (errorMessage.includes('Missing tenantId or syncAll parameter')) {

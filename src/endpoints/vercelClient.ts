@@ -31,6 +31,61 @@ export const createVercelClient = (config: VercelClientConfig) => {
   return new Vercel({ bearerToken: vercelToken })
 }
 
+// Some responses from the Vercel SDK throw a ResponseValidationError even when the
+// project is actually created. In that case the error body often contains the full
+// project payload. This helper tries to recover that payload so we can treat the
+// operation as a success instead of blocking tenant approval.
+const extractProjectFromValidationError = (error: any) => {
+  const rawBody = error?.response?.body ?? error?.body ?? error?.responseBody ?? error?.value
+  if (!rawBody) {
+    return null
+  }
+
+  let parsed = rawBody
+  if (typeof rawBody === 'string') {
+    try {
+      parsed = JSON.parse(rawBody)
+    } catch {
+      return null
+    }
+  }
+
+  const candidates = [parsed, parsed?.project, parsed?.error?.project, parsed?.value, parsed?.data]
+
+  return candidates.find((candidate) => candidate?.id && candidate?.name) || null
+}
+
+// Similar to extractProjectFromValidationError, but for list responses where the
+// payload is an array of projects. This helps us gracefully handle SDK
+// ResponseValidationError cases for GET /projects.
+const extractProjectsFromValidationError = (error: any) => {
+  const rawBody = error?.response?.body ?? error?.body ?? error?.responseBody ?? error?.value
+  if (!rawBody) {
+    return null
+  }
+
+  let parsed = rawBody
+  if (typeof rawBody === 'string') {
+    try {
+      parsed = JSON.parse(rawBody)
+    } catch {
+      return null
+    }
+  }
+
+  const candidates = [
+    parsed,
+    parsed?.projects,
+    parsed?.data,
+    parsed?.value,
+    parsed?.error?.projects,
+    parsed?.error?.data,
+  ]
+
+  const projectArray = candidates.find((candidate) => Array.isArray(candidate))
+  return projectArray || null
+}
+
 export const getVercelProjects = async (
   config: VercelClientConfig,
 ): Promise<GetProjectsResponse> => {
@@ -76,6 +131,16 @@ export const getVercelProjects = async (
 
     return createSuccessResponse(projectsData) as GetProjectsResponse
   } catch (error) {
+    const recoveredProjects = extractProjectsFromValidationError(error)
+
+    if (recoveredProjects) {
+      void logger.warn('Vercel projects fetched but response validation failed', {
+        count: recoveredProjects.length,
+      })
+
+      return createSuccessResponse(recoveredProjects) as GetProjectsResponse
+    }
+
     void logger.error('Error fetching Vercel projects', {
       error: error instanceof Error ? error.message : String(error),
     })
@@ -130,6 +195,18 @@ export const createVercelProject = async (
     })
     return createSuccessResponse(project) as CreateProjectResponse
   } catch (error) {
+    const recoveredProject = extractProjectFromValidationError(error)
+
+    if (recoveredProject) {
+      void logger.warn('Vercel project created but response validation failed', {
+        projectId: recoveredProject.id,
+        projectName: recoveredProject.name,
+      })
+
+      // Treat as success when we can safely recover the project payload
+      return createSuccessResponse(recoveredProject) as CreateProjectResponse
+    }
+
     void logger.error('Error creating Vercel project', {
       error: error instanceof Error ? error.message : String(error),
     })
