@@ -17,6 +17,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed component registration on tenant collection for tenant sync
 
+## [0.1.11] - 2025-12-07
+
+### Added
+
+- Global Vercel credentials now support multiple accounts with a single active credential
+- Default MID\_\* design-style environment variables seeded in tenant environment variable defaults
+
+### Changed
+
+- Global config selection now prefers the active credential when resolving Vercel token/team defaults
+- Type safety improvements in credential selection logic
+
+### Fixed
+
+- Build now passes TypeScript implicit any checks for credential mapping
+
 ## [0.1.10] - 2025-01-05
 
 ### Fixed

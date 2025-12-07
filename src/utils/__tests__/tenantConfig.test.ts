@@ -37,15 +37,25 @@ describe('TenantConfig', () => {
     it('should return global settings when available', async () => {
       const globalSettings = {
         loggerEnabled: false,
-        vercelTeamId: 'global-team',
-        vercelToken: 'global-token',
+        credentials: [
+          {
+            accountName: 'Account A',
+            active: true,
+            vercelTeamId: 'global-team',
+            vercelToken: 'global-token',
+          },
+        ],
       }
 
       mockPayload.findGlobal.mockResolvedValue(globalSettings)
 
       const config = await getGlobalConfig(mockPayload)
 
-      expect(config).toEqual(globalSettings)
+      expect(config).toEqual({
+        loggerEnabled: false,
+        vercelTeamId: 'global-team',
+        vercelToken: 'global-token',
+      })
     })
 
     it('should fallback to environment when global settings are empty', async () => {
@@ -55,8 +65,7 @@ describe('TenantConfig', () => {
 
       const globalSettings = {
         loggerEnabled: false,
-        vercelTeamId: '',
-        vercelToken: '',
+        credentials: [],
       }
 
       mockPayload.findGlobal.mockResolvedValue(globalSettings)
@@ -67,6 +76,42 @@ describe('TenantConfig', () => {
         loggerEnabled: false, // Uses global setting, not env
         vercelTeamId: 'env-team',
         vercelToken: 'env-token',
+      })
+    })
+
+    it('should pick the last active credential when multiple are set to active', async () => {
+      const globalSettings = {
+        credentials: [
+          {
+            accountName: 'Account A',
+            active: false,
+            vercelTeamId: 'team-a',
+            vercelToken: 'token-a',
+          },
+          {
+            accountName: 'Account B',
+            active: true,
+            vercelTeamId: 'team-b',
+            vercelToken: 'token-b',
+          },
+          {
+            accountName: 'Account C',
+            active: true,
+            vercelTeamId: 'team-c',
+            vercelToken: 'token-c',
+          },
+        ],
+        loggerEnabled: true,
+      }
+
+      mockPayload.findGlobal.mockResolvedValue(globalSettings)
+
+      const config = await getGlobalConfig(mockPayload)
+
+      expect(config).toEqual({
+        loggerEnabled: true,
+        vercelTeamId: 'team-c',
+        vercelToken: 'token-c',
       })
     })
   })
@@ -81,8 +126,14 @@ describe('TenantConfig', () => {
 
       const globalSettings = {
         loggerEnabled: true,
-        vercelTeamId: 'global-team',
-        vercelToken: 'global-token',
+        credentials: [
+          {
+            accountName: 'Account A',
+            active: true,
+            vercelTeamId: 'global-team',
+            vercelToken: 'global-token',
+          },
+        ],
       }
 
       mockPayload.findByID.mockResolvedValue(tenant)
@@ -106,8 +157,14 @@ describe('TenantConfig', () => {
 
       const globalSettings = {
         loggerEnabled: false,
-        vercelTeamId: 'global-team',
-        vercelToken: 'global-token',
+        credentials: [
+          {
+            accountName: 'Account A',
+            active: true,
+            vercelTeamId: 'global-team',
+            vercelToken: 'global-token',
+          },
+        ],
       }
 
       mockPayload.findByID.mockResolvedValue(tenant)
@@ -150,8 +207,14 @@ describe('TenantConfig', () => {
 
       const globalSettings = {
         loggerEnabled: true,
-        vercelTeamId: 'global-team',
-        vercelToken: 'global-token',
+        credentials: [
+          {
+            accountName: 'Account A',
+            active: true,
+            vercelTeamId: 'global-team',
+            vercelToken: 'global-token',
+          },
+        ],
       }
 
       mockPayload.findByID.mockResolvedValue(tenant)
@@ -169,15 +232,25 @@ describe('TenantConfig', () => {
     it('should call getGlobalConfig when no tenantId is provided', async () => {
       const globalSettings = {
         loggerEnabled: false,
-        vercelTeamId: 'global-team',
-        vercelToken: 'global-token',
+        credentials: [
+          {
+            accountName: 'Account A',
+            active: true,
+            vercelTeamId: 'global-team',
+            vercelToken: 'global-token',
+          },
+        ],
       }
 
       mockPayload.findGlobal.mockResolvedValue(globalSettings)
 
       const config = await getConfig(mockPayload)
 
-      expect(config).toEqual(globalSettings)
+      expect(config).toEqual({
+        loggerEnabled: false,
+        vercelTeamId: 'global-team',
+        vercelToken: 'global-token',
+      })
     })
   })
 })

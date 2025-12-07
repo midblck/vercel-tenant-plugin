@@ -11,10 +11,60 @@ export interface TenantConfig {
   vercelToken: string
 }
 
+interface CredentialCandidate {
+  accountName?: string
+  active?: boolean
+  vercelTeamId?: string
+  vercelToken?: string
+}
+
+const envCredential = () => ({
+  vercelTeamId: process.env.VERCEL_TEAM_ID || '',
+  vercelToken: process.env.VERCEL_TOKEN || '',
+})
+
+const pickActiveCredential = (globalSettings: any): CredentialCandidate | null => {
+  const credentials = Array.isArray(globalSettings?.credentials) ? globalSettings.credentials : []
+
+  if (!credentials.length) {
+    return null
+  }
+
+  const sanitized = credentials
+    .filter((cred: CredentialCandidate) => cred && typeof cred === 'object')
+    .map((cred: CredentialCandidate) => ({
+      accountName: (cred.accountName || '').toString().trim(),
+      active: Boolean(cred.active),
+      vercelTeamId: (cred.vercelTeamId || '').toString().trim(),
+      vercelToken: (cred.vercelToken || '').toString().trim(),
+    }))
+    .filter((cred: CredentialCandidate) => cred.vercelToken)
+
+  if (!sanitized.length) {
+    return null
+  }
+
+  let activeIndex = -1
+  for (let i = sanitized.length - 1; i >= 0; i -= 1) {
+    if (sanitized[i].active) {
+      activeIndex = i
+      break
+    }
+  }
+
+  if (activeIndex === -1) {
+    activeIndex = 0
+  }
+
+  return sanitized[activeIndex]
+}
+
 /**
  * Get global configuration from TenantSetting collection with environment fallback
  */
 export async function getGlobalConfig(payload: Payload): Promise<TenantConfig> {
+  const env = envCredential()
+
   try {
     // Try to get from TenantSetting global
     const globalSettings = await payload.findGlobal({
@@ -22,10 +72,24 @@ export async function getGlobalConfig(payload: Payload): Promise<TenantConfig> {
     })
 
     if (globalSettings) {
+      const activeCredential = pickActiveCredential(globalSettings)
+
+      const vercelToken =
+        activeCredential?.vercelToken ||
+        globalSettings.vercelToken ||
+        globalSettings.VERCEL_TOKEN ||
+        env.vercelToken
+
+      const vercelTeamId =
+        activeCredential?.vercelTeamId ||
+        globalSettings.vercelTeamId ||
+        globalSettings.VERCEL_TEAM_ID ||
+        env.vercelTeamId
+
       return {
         loggerEnabled: globalSettings.loggerEnabled ?? process.env.LOGGER_ENABLED === 'true',
-        vercelTeamId: globalSettings.vercelTeamId || process.env.VERCEL_TEAM_ID || '',
-        vercelToken: globalSettings.vercelToken || process.env.VERCEL_TOKEN || '',
+        vercelTeamId,
+        vercelToken,
       }
     }
   } catch (error) {
@@ -38,8 +102,8 @@ export async function getGlobalConfig(payload: Payload): Promise<TenantConfig> {
   // Fallback to environment variables
   return {
     loggerEnabled: process.env.LOGGER_ENABLED === 'true',
-    vercelTeamId: process.env.VERCEL_TEAM_ID || '',
-    vercelToken: process.env.VERCEL_TOKEN || '',
+    vercelTeamId: env.vercelTeamId,
+    vercelToken: env.vercelToken,
   }
 }
 

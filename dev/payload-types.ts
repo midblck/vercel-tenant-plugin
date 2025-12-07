@@ -70,8 +70,8 @@ export interface Config {
     posts: Post;
     media: Media;
     tenant: Tenant;
-    'tenant-detail': TenantDetail;
     'tenant-envariable': TenantEnvariable;
+    'tenant-deployment': TenantDeployment;
     users: User;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,8 +82,8 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     tenant: TenantSelect<false> | TenantSelect<true>;
-    'tenant-detail': TenantDetailSelect<false> | TenantDetailSelect<true>;
     'tenant-envariable': TenantEnvariableSelect<false> | TenantEnvariableSelect<true>;
+    'tenant-deployment': TenantDeploymentSelect<false> | TenantDeploymentSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -92,8 +92,12 @@ export interface Config {
   db: {
     defaultIDType: string;
   };
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'tenant-setting': TenantSetting;
+  };
+  globalsSelect: {
+    'tenant-setting': TenantSettingSelect<false> | TenantSettingSelect<true>;
+  };
   locale: null;
   user: User & {
     collection: 'users';
@@ -135,31 +139,584 @@ export interface Post {
   createdAt: string;
 }
 /**
+ * Vercel project tenants with comprehensive project data
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tenant".
  */
 export interface Tenant {
   id: string;
+  /**
+   * Display name for the tenant
+   */
   name: string;
-  vercelProjectId: string;
-  vercelTeamId?: string | null;
-  vercelProjectName?: string | null;
-  vercelProjectUrl?: string | null;
-  vercelProjectFramework?: string | null;
-  vercelProjectGitRepository?: {
-    type?: string | null;
-    repo?: string | null;
+  /**
+   * Whether this tenant is currently active
+   */
+  isActive?: boolean | null;
+  /**
+   * Disable cron jobs for this project in Vercel
+   */
+  disableCron?: boolean | null;
+  /**
+   * Tenant approval status - only approved tenants will create Vercel projects
+   */
+  status?: ('draft' | 'approved') | null;
+  /**
+   * Git repository configuration
+   */
+  vercelProjectGitRepository: {
+    /**
+     * Git provider (github, gitlab, bitbucket)
+     */
+    type: string;
+    /**
+     * Repository owner/organization
+     */
+    owner: string;
+    /**
+     * Repository name
+     */
+    repo: string;
+    /**
+     * Production branch
+     */
     branch?: string | null;
+    /**
+     * Repository ID from Git provider
+     */
+    repoId?: number | null;
+    /**
+     * Repository owner ID from Git provider
+     */
+    repoOwnerId?: number | null;
   };
+  /**
+   * Last time data was synced from Vercel
+   */
+  lastSynced?: string | null;
+  /**
+   * Unique Vercel project identifier (auto-populated)
+   */
+  vercelProjectId?: string | null;
+  /**
+   * Project name from Vercel
+   */
+  vercelProjectName?: string | null;
+  /**
+   * Live deployment URL
+   */
+  vercelProjectUrl?: string | null;
+  /**
+   * Framework used (e.g., nextjs, react, vue)
+   */
+  vercelProjectFramework?: string | null;
+  /**
+   * Deployment environment
+   */
+  vercelProjectEnvironment?: ('production' | 'preview' | 'development') | null;
+  /**
+   * Current deployment status (READY, BUILDING, ERROR, etc.)
+   */
+  vercelProjectStatus?: string | null;
+  /**
+   * Custom domains associated with the project
+   */
   vercelProjectDomains?:
     | {
-        domain?: string | null;
+        domain: string;
+        /**
+         * Whether the domain is verified
+         */
+        verified?: boolean | null;
         id?: string | null;
       }[]
     | null;
-  vercelProjectEnvironment?: ('production' | 'preview' | 'development') | null;
-  isActive?: boolean | null;
+  /**
+   * Vercel team identifier
+   */
+  vercelTeamId?: string | null;
+  /**
+   * ID of the most recent successful deployment
+   */
+  lastDeploymentId?: string | null;
+  /**
+   * URL of the most recent successful deployment
+   */
+  lastDeploymentUrl?: string | null;
+  /**
+   * Status of the most recent deployment
+   */
+  lastDeploymentStatus?: ('building' | 'ready' | 'error' | 'canceled' | 'queued') | null;
+  /**
+   * When the most recent successful deployment was completed
+   */
+  lastDeploymentAt?: string | null;
+  /**
+   * Latest deployment record for this tenant
+   */
+  latestDeployment?: (string | null) | TenantDeployment;
+  /**
+   * Environment variables configuration for this tenant
+   */
+  environmentVariables?: (string | null) | TenantEnvariable;
+  /**
+   * Build command for the Vercel project
+   */
+  buildCommand?: string | null;
+  /**
+   * Development command for the Vercel project
+   */
+  devCommand?: string | null;
+  /**
+   * Install command for the Vercel project
+   */
+  installCommand?: string | null;
+  /**
+   * Output directory for the Vercel project
+   */
+  outputDirectory?: string | null;
+  /**
+   * Root directory for the Vercel project
+   */
+  rootDirectory?: string | null;
+  /**
+   * Node.js version for the Vercel project
+   */
+  nodeVersion?: string | null;
+  /**
+   * Whether the project source is public
+   */
+  publicSource?: boolean | null;
+  /**
+   * Whether directory listing is enabled
+   */
+  directoryListing?: boolean | null;
+  /**
+   * Whether git fork protection is enabled
+   */
+  gitForkProtection?: boolean | null;
+  /**
+   * Whether Git LFS is enabled
+   */
+  gitLFS?: boolean | null;
+  /**
+   * Git comment settings
+   */
+  gitComments?: {
+    /**
+     * Enable comments on pull requests
+     */
+    onPullRequest?: boolean | null;
+    /**
+     * Enable comments on commits
+     */
+    onCommit?: boolean | null;
+  };
+  /**
+   * Git provider options
+   */
+  gitProviderOptions?: {
+    /**
+     * Deployment creation setting
+     */
+    createDeployments?: string | null;
+    /**
+     * Whether to disable repository dispatch events
+     */
+    disableRepositoryDispatchEvents?: boolean | null;
+  };
+  /**
+   * Whether the project is live
+   */
+  live?: boolean | null;
+  /**
+   * Whether the project is paused
+   */
+  paused?: boolean | null;
+  /**
+   * Whether V0 is enabled
+   */
+  v0?: boolean | null;
+  /**
+   * Project tier (standard, pro, enterprise)
+   */
+  tier?: string | null;
+  /**
+   * Project features and capabilities
+   */
+  features?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Password protection settings
+   */
+  passwordProtection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * SSO protection settings
+   */
+  ssoProtection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Analytics configuration
+   */
+  analytics?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Speed insights configuration
+   */
+  speedInsights?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Web analytics configuration
+   */
+  webAnalytics?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Resource configuration
+   */
+  resourceConfig?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Default resource configuration
+   */
+  defaultResourceConfig?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Custom environment configurations
+   */
+  customEnvironments?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Connect configuration ID
+   */
+  connectConfigurationId?: string | null;
+  /**
+   * Whether connect builds are enabled
+   */
+  connectBuildsEnabled?: boolean | null;
+  /**
+   * Whether to auto-expose system environment variables
+   */
+  autoExposeSystemEnvs?: boolean | null;
+  /**
+   * Whether to auto-assign custom domains
+   */
+  autoAssignCustomDomains?: boolean | null;
+  /**
+   * Deployment expiration settings
+   */
+  deploymentExpiration?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Rolling release configuration
+   */
+  rollingRelease?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * When project transfer was completed
+   */
+  transferCompletedAt?: string | null;
+  /**
+   * When project transfer was started
+   */
+  transferStartedAt?: string | null;
+  /**
+   * Account ID to transfer project to
+   */
+  transferToAccountId?: string | null;
+  /**
+   * Account ID project was transferred from
+   */
+  transferredFromAccountId?: string | null;
+  /**
+   * When the project was created in Vercel
+   */
+  vercelProjectCreatedAt?: string | null;
+  /**
+   * When the project was last updated in Vercel
+   */
+  vercelProjectUpdatedAt?: string | null;
+  /**
+   * Last sync operation status
+   */
+  lastSyncStatus?: ('unsynced' | 'synced' | 'error') | null;
+  /**
+   * Last sync operation message
+   */
+  lastSyncMessage?: string | null;
+  /**
+   * Last sync operation data from Vercel for recheck
+   */
+  lastSyncData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Override Vercel API token for this tenant (optional - uses global settings if empty)
+   */
+  vercelTokenOverride?: string | null;
+  /**
+   * Override Vercel team ID for this tenant (optional - uses global settings if empty)
+   */
+  vercelTeamIdOverride?: string | null;
+  /**
+   * Internal flag to track sync operation origin (prevents infinite loops)
+   */
+  _syncOrigin?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenant-deployment".
+ */
+export interface TenantDeployment {
+  id: string;
+  tenant: string | Tenant;
+  triggerType?: ('manual' | 'sync' | 'auto') | null;
+  deploymentId?: string | null;
+  deploymentUrl?: string | null;
+  buildId?: string | null;
+  /**
+   * When this deployment was created on Vercel
+   */
+  deploymentCreatedAt?: string | null;
+  status?: ('building' | 'ready' | 'error' | 'canceled' | 'queued') | null;
+  environment: 'production' | 'preview' | 'development';
+  events?:
+    | {
+        type: string;
+        created: string;
+        text?: string | null;
+        statusCode?: number | null;
+        payload?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   lastSynced?: string | null;
+  /**
+   * Last sync operation status
+   */
+  lastSyncStatus?: ('synced' | 'error') | null;
+  /**
+   * Last sync operation message
+   */
+  lastSyncMessage?: string | null;
+  /**
+   * Last sync operation data from Vercel for recheck
+   */
+  lastSyncData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Additional deployment metadata (source, trigger type, etc.)
+   */
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * Environment variables configuration for tenant projects (one per tenant)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenant-envariable".
+ */
+export interface TenantEnvariable {
+  id: string;
+  /**
+   * Associated tenant project (one environment variable record per tenant)
+   */
+  tenant: string | Tenant;
+  /**
+   * Environment where these variables apply
+   */
+  environment: 'production' | 'preview' | 'development';
+  /**
+   * Whether to automatically deploy when this environment variable changes
+   */
+  autodeploy?: boolean | null;
+  /**
+   * Environment variables for this tenant
+   */
+  envVars?:
+    | {
+        /**
+         * Environment variable name
+         */
+        key: string;
+        /**
+         * Environment variable value (will be encrypted in production)
+         */
+        value?: string | null;
+        /**
+         * Type of environment variable in Vercel
+         */
+        type?: ('plain' | 'encrypted' | 'system') | null;
+        /**
+         * Comment or description for this environment variable
+         */
+        comment?: string | null;
+        /**
+         * Whether the value is encrypted
+         */
+        isEncrypted?: boolean | null;
+        /**
+         * Vercel environment variable ID for updates (auto-filled)
+         */
+        vercelId?: string | null;
+        /**
+         * Target environments in Vercel
+         */
+        targets?:
+          | {
+              target: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Number of environment variables configured
+   */
+  envVarCount?: number | null;
+  /**
+   * When this configuration was last modified
+   */
+  lastUpdated?: string | null;
+  /**
+   * When these variables were last synced to Vercel
+   */
+  lastSynced?: string | null;
+  /**
+   * Last sync operation status
+   */
+  lastSyncStatus?: ('synced' | 'error') | null;
+  /**
+   * Last sync operation message
+   */
+  lastSyncMessage?: string | null;
+  /**
+   * Last sync operation data from Vercel for recheck
+   */
+  lastSyncData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Internal flag to skip hooks during sync operations
+   */
+  _skipHooks?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -183,48 +740,6 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tenant-detail".
- */
-export interface TenantDetail {
-  id: string;
-  vercelProjectId: string;
-  tenant: string | Tenant;
-  /**
-   * Raw Vercel API response data
-   */
-  vercelData?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  lastUpdated?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tenant-envariable".
- */
-export interface TenantEnvariable {
-  id: string;
-  key: string;
-  /**
-   * Environment variable value (will be encrypted in production)
-   */
-  value?: string | null;
-  tenant: string | Tenant;
-  environment: 'production' | 'preview' | 'development';
-  isEncrypted?: boolean | null;
-  lastUpdated?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -238,13 +753,6 @@ export interface User {
   hash?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
   password?: string | null;
 }
 /**
@@ -267,12 +775,12 @@ export interface PayloadLockedDocument {
         value: string | Tenant;
       } | null)
     | ({
-        relationTo: 'tenant-detail';
-        value: string | TenantDetail;
-      } | null)
-    | ({
         relationTo: 'tenant-envariable';
         value: string | TenantEnvariable;
+      } | null)
+    | ({
+        relationTo: 'tenant-deployment';
+        value: string | TenantDeployment;
       } | null)
     | ({
         relationTo: 'users';
@@ -352,39 +860,93 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface TenantSelect<T extends boolean = true> {
   name?: T;
-  vercelProjectId?: T;
-  vercelTeamId?: T;
-  vercelProjectName?: T;
-  vercelProjectUrl?: T;
-  vercelProjectFramework?: T;
+  isActive?: T;
+  disableCron?: T;
+  status?: T;
   vercelProjectGitRepository?:
     | T
     | {
         type?: T;
+        owner?: T;
         repo?: T;
         branch?: T;
+        repoId?: T;
+        repoOwnerId?: T;
       };
+  lastSynced?: T;
+  vercelProjectId?: T;
+  vercelProjectName?: T;
+  vercelProjectUrl?: T;
+  vercelProjectFramework?: T;
+  vercelProjectEnvironment?: T;
+  vercelProjectStatus?: T;
   vercelProjectDomains?:
     | T
     | {
         domain?: T;
+        verified?: T;
         id?: T;
       };
-  vercelProjectEnvironment?: T;
-  isActive?: T;
-  lastSynced?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tenant-detail_select".
- */
-export interface TenantDetailSelect<T extends boolean = true> {
-  vercelProjectId?: T;
-  tenant?: T;
-  vercelData?: T;
-  lastUpdated?: T;
+  vercelTeamId?: T;
+  lastDeploymentId?: T;
+  lastDeploymentUrl?: T;
+  lastDeploymentStatus?: T;
+  lastDeploymentAt?: T;
+  latestDeployment?: T;
+  environmentVariables?: T;
+  buildCommand?: T;
+  devCommand?: T;
+  installCommand?: T;
+  outputDirectory?: T;
+  rootDirectory?: T;
+  nodeVersion?: T;
+  publicSource?: T;
+  directoryListing?: T;
+  gitForkProtection?: T;
+  gitLFS?: T;
+  gitComments?:
+    | T
+    | {
+        onPullRequest?: T;
+        onCommit?: T;
+      };
+  gitProviderOptions?:
+    | T
+    | {
+        createDeployments?: T;
+        disableRepositoryDispatchEvents?: T;
+      };
+  live?: T;
+  paused?: T;
+  v0?: T;
+  tier?: T;
+  features?: T;
+  passwordProtection?: T;
+  ssoProtection?: T;
+  analytics?: T;
+  speedInsights?: T;
+  webAnalytics?: T;
+  resourceConfig?: T;
+  defaultResourceConfig?: T;
+  customEnvironments?: T;
+  connectConfigurationId?: T;
+  connectBuildsEnabled?: T;
+  autoExposeSystemEnvs?: T;
+  autoAssignCustomDomains?: T;
+  deploymentExpiration?: T;
+  rollingRelease?: T;
+  transferCompletedAt?: T;
+  transferStartedAt?: T;
+  transferToAccountId?: T;
+  transferredFromAccountId?: T;
+  vercelProjectCreatedAt?: T;
+  vercelProjectUpdatedAt?: T;
+  lastSyncStatus?: T;
+  lastSyncMessage?: T;
+  lastSyncData?: T;
+  vercelTokenOverride?: T;
+  vercelTeamIdOverride?: T;
+  _syncOrigin?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -393,14 +955,66 @@ export interface TenantDetailSelect<T extends boolean = true> {
  * via the `definition` "tenant-envariable_select".
  */
 export interface TenantEnvariableSelect<T extends boolean = true> {
-  key?: T;
-  value?: T;
   tenant?: T;
   environment?: T;
-  isEncrypted?: T;
+  autodeploy?: T;
+  envVars?:
+    | T
+    | {
+        key?: T;
+        value?: T;
+        type?: T;
+        comment?: T;
+        isEncrypted?: T;
+        vercelId?: T;
+        targets?:
+          | T
+          | {
+              target?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  envVarCount?: T;
   lastUpdated?: T;
+  lastSynced?: T;
+  lastSyncStatus?: T;
+  lastSyncMessage?: T;
+  lastSyncData?: T;
+  _skipHooks?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenant-deployment_select".
+ */
+export interface TenantDeploymentSelect<T extends boolean = true> {
+  tenant?: T;
+  triggerType?: T;
+  deploymentId?: T;
+  deploymentUrl?: T;
+  buildId?: T;
+  deploymentCreatedAt?: T;
+  status?: T;
+  environment?: T;
+  events?:
+    | T
+    | {
+        type?: T;
+        created?: T;
+        text?: T;
+        statusCode?: T;
+        payload?: T;
+        id?: T;
+      };
+  lastSynced?: T;
+  lastSyncStatus?: T;
+  lastSyncMessage?: T;
+  lastSyncData?: T;
+  meta?: T;
+  createdAt?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -416,13 +1030,6 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -455,6 +1062,64 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Global tenant settings - manage multiple Vercel credentials with one active entry and toggle the global logger.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenant-setting".
+ */
+export interface TenantSetting {
+  id: string;
+  /**
+   * Store one or more Vercel accounts. Exactly one credential will be active and used for API calls.
+   */
+  credentials?:
+    | {
+        /**
+         * Label to identify this Vercel account
+         */
+        accountName: string;
+        /**
+         * Vercel API token for this account
+         */
+        vercelToken: string;
+        /**
+         * Optional Vercel team ID for this account
+         */
+        vercelTeamId?: string | null;
+        /**
+         * Set this credential as the active one (others will be deactivated)
+         */
+        active?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Global logger enable/disable setting (fallback from environment variables)
+   */
+  loggerEnabled?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenant-setting_select".
+ */
+export interface TenantSettingSelect<T extends boolean = true> {
+  credentials?:
+    | T
+    | {
+        accountName?: T;
+        vercelToken?: T;
+        vercelTeamId?: T;
+        active?: T;
+        id?: T;
+      };
+  loggerEnabled?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
