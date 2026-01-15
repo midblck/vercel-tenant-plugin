@@ -71,6 +71,14 @@ export const tenantEnvironmentVariableCollection: CollectionConfig = {
         },
         {
           type: 'plain',
+          comment: 'UploadThing token',
+          isEncrypted: false,
+          key: 'UPLOADTHING_TOKEN',
+          targets: [{ target: 'production' }, { target: 'preview' }, { target: 'development' }],
+          value: process.env.UPLOADTHING_TOKEN || '',
+        },
+        {
+          type: 'plain',
           comment: 'Vercel OIDC token',
           isEncrypted: false,
           key: 'VERCEL_OIDC_TOKEN',

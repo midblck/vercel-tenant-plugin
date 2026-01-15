@@ -89,15 +89,6 @@ export const syncSingleProject: PayloadHandler = async (req) => {
       timestamp: new Date().toISOString(),
     })
 
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercelToken, source, isValid } = await getVercelCredentialsForTenant(
-      req.payload,
-    )
-
-    void logger.info(`Using credentials for single project sync`, {
-      source: source,
-      isValid: isValid,
-    })
     const payload = req.payload
 
     // Validate request parameters
@@ -144,6 +135,19 @@ export const syncSingleProject: PayloadHandler = async (req) => {
       tenantId: tenant.id,
       tenantName: tenant.name,
       timestamp: new Date().toISOString(),
+    })
+
+    // Fetch credentials with tenant overrides first, then active global credential
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    const { teamId, vercelToken, source, isValid } = await getVercelCredentialsForTenant(
+      payload,
+      tenant.id,
+    )
+
+    void logger.info(`Using credentials for single project sync`, {
+      isValid,
+      source,
+      tenantId: tenant.id,
     })
 
     // Fetch project from Vercel API

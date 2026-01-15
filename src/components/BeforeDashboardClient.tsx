@@ -62,18 +62,38 @@ export const BeforeDashboardClient = () => {
     total: 0,
   })
 
+  const buildApiUrl = useCallback(
+    (path: string) => {
+      const base = (
+        process.env.NEXT_PUBLIC_SERVER_URL ||
+        // Prefer browser origin when env override is not provided, so local dev
+        // hits the same host/port that served the admin UI.
+        (typeof window !== 'undefined' ? window.location.origin : '') ||
+        serverURL ||
+        'http://localhost:3300'
+      ).replace(/\/$/, '')
+      const apiPrefix = (routesAPI || '').replace(/\/$/, '')
+      const normalizedPath = path.startsWith('/') ? path : `/${path}`
+      return `${base}${apiPrefix}${normalizedPath}`
+    },
+    [routesAPI, serverURL],
+  )
+
   // Function to fetch all counts in a single call
   const fetchAllCounts = useCallback(async () => {
+    const tenantCountsUrl = buildApiUrl('/vercel/tenant-counts')
+    const deploymentCountsUrl = buildApiUrl('/vercel/tenant-deployment-counts')
+
     try {
       // Fetch both tenant and deployment counts in parallel
       const [tenantResponse, deploymentResponse] = await Promise.all([
-        fetch(`${serverURL}${routesAPI}/vercel/tenant-counts`, {
+        fetch(tenantCountsUrl, {
           headers: {
             'Content-Type': 'application/json',
           },
           method: 'GET',
         }),
-        fetch(`${serverURL}${routesAPI}/vercel/tenant-deployment-counts`, {
+        fetch(deploymentCountsUrl, {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -103,10 +123,12 @@ export const BeforeDashboardClient = () => {
       }
     } catch (error) {
       void logger.error('Error fetching counts', {
+        deploymentCountsUrl,
         error: error instanceof Error ? error.message : String(error),
+        tenantCountsUrl,
       })
     }
-  }, [serverURL, routesAPI])
+  }, [buildApiUrl])
 
   // Fetch all counts on component mount only
   useEffect(() => {
@@ -117,7 +139,7 @@ export const BeforeDashboardClient = () => {
   const checkVercelApiStatus = useCallback(async () => {
     setVercelApiStatus('checking')
     try {
-      const response = await fetch(`${serverURL}${routesAPI}/vercel/projects`, {
+      const response = await fetch(buildApiUrl('/vercel/projects'), {
         body: JSON.stringify({}),
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +155,7 @@ export const BeforeDashboardClient = () => {
     } catch (_error) {
       setVercelApiStatus('offline')
     }
-  }, [serverURL, routesAPI])
+  }, [buildApiUrl])
 
   // Check status on mount
   useEffect(() => {
@@ -154,10 +176,10 @@ export const BeforeDashboardClient = () => {
       const requestBody = { syncAll: true }
       void logger.info('Sync Projects Request', {
         body: requestBody,
-        url: `${serverURL}${routesAPI}/vercel/sync`,
+        url: buildApiUrl('/vercel/sync'),
       })
 
-      const response = await fetch(`${serverURL}${routesAPI}/vercel/sync`, {
+      const response = await fetch(buildApiUrl('/vercel/sync'), {
         body: JSON.stringify(requestBody),
         headers: {
           'Content-Type': 'application/json',
@@ -245,7 +267,7 @@ export const BeforeDashboardClient = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [serverURL, routesAPI, fetchAllCounts])
+  }, [buildApiUrl, fetchAllCounts])
 
   const handleSyncDeployments = useCallback(async () => {
     setIsSyncDeploymentLoading(true)
@@ -259,14 +281,13 @@ export const BeforeDashboardClient = () => {
 
     try {
       const requestBody = { syncAll: true }
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || serverURL
 
       void logger.info('Sync Deployments Request', {
         body: requestBody,
-        url: `${serverUrl}${routesAPI}/vercel/sync-deployments`,
+        url: buildApiUrl('/vercel/sync-deployments'),
       })
 
-      const response = await fetch(`${serverUrl}${routesAPI}/vercel/sync-deployments`, {
+      const response = await fetch(buildApiUrl('/vercel/sync-deployments'), {
         body: JSON.stringify(requestBody),
         headers: {
           'Content-Type': 'application/json',
@@ -358,7 +379,7 @@ export const BeforeDashboardClient = () => {
     } finally {
       setIsSyncDeploymentLoading(false)
     }
-  }, [serverURL, routesAPI, fetchAllCounts])
+  }, [buildApiUrl, fetchAllCounts])
 
   const handleCreateDeployment = useCallback(() => {
     // Redirect to tenant-deployment create page
@@ -370,7 +391,7 @@ export const BeforeDashboardClient = () => {
     setCancelMessage(PROGRESS_MESSAGES.CANCELLING_DEPLOYMENTS)
 
     try {
-      const response = await fetch(`${serverURL}${routesAPI}/vercel/cancel-deployments`, {
+      const response = await fetch(buildApiUrl('/vercel/cancel-deployments'), {
         method: 'POST',
       })
 
@@ -394,7 +415,7 @@ export const BeforeDashboardClient = () => {
     } finally {
       setIsCancelLoading(false)
     }
-  }, [serverURL, routesAPI, fetchAllCounts])
+  }, [buildApiUrl, fetchAllCounts])
 
   const getProgressBarColor = (status: string) => {
     return PROGRESS_COLORS[status as keyof typeof PROGRESS_COLORS] || PROGRESS_COLORS.IDLE

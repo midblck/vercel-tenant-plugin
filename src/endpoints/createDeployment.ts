@@ -9,12 +9,15 @@ export const createDeployment: PayloadHandler = async (req) => {
     void logger.deployment('Starting deployment creation...')
     const { deploymentData, tenantId } = (await req.json?.()) || {}
     const { payload } = req
-    const { teamId, vercel, source, isValid } = await getVercelCredentialsForTenant(payload, tenantId)
-    
+    const { isValid, source, teamId, vercel } = await getVercelCredentialsForTenant(
+      payload,
+      tenantId,
+    )
+
     void logger.info(`Using credentials for deployment creation`, {
-      source: source,
-      tenantId: tenantId,
-      isValid: isValid,
+      isValid,
+      source,
+      tenantId,
     })
 
     void logger.deployment('Request params', { teamId, tenantId })
@@ -115,10 +118,78 @@ export const createDeployment: PayloadHandler = async (req) => {
     void logger.deployment('Triggering Vercel deployment...')
     void logger.deployment('Attempting deployment with git source...')
 
-    const result = await vercel.deployments.createDeployment({
-      requestBody,
-      teamId,
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let result: any
+    try {
+      result = await vercel.deployments.createDeployment({
+        requestBody,
+        teamId,
+      })
+    } catch (error) {
+      // The Vercel SDK can throw ResponseValidationError even when the deployment is created.
+      const rawBody =
+        // SDK error shapes vary; check common fields
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.response?.body ??
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.body ??
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.responseBody ??
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.value
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let recovered: any = null
+      if (rawBody) {
+        let parsed = rawBody
+        if (typeof rawBody === 'string') {
+          try {
+            parsed = JSON.parse(rawBody)
+          } catch {
+            parsed = null
+          }
+        }
+
+        if (parsed && typeof parsed === 'object') {
+          recovered =
+            parsed?.deployment ||
+            parsed?.data ||
+            parsed?.value ||
+            parsed?.error?.deployment ||
+            parsed
+        }
+      }
+
+      if (recovered?.id) {
+        void logger.warn('Deployment created but response validation failed', {
+          deploymentId: recovered.id,
+          tenantId,
+        })
+
+        const deploymentResponse = {
+          deployment: {
+            id: recovered.id,
+            name: recovered.name || recovered.id,
+            readyState: recovered.readyState || recovered.state || 'unknown',
+            status: recovered.status || recovered.readyState || 'unknown',
+            url: recovered.url || recovered.inspectorUrl || '',
+          },
+          success: true,
+        }
+
+        return Response.json(deploymentResponse)
+      }
+
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      void logger.error('Error triggering deployment', {
+        error: errorMessage,
+        tenantId,
+      })
+      return Response.json(
+        { error: `Operation failed: ${errorMessage}`, success: false },
+        { status: 400 },
+      )
+    }
 
     void logger.deployment('Deployment succeeded with git source')
     void logger.deployment('Vercel deployment triggered successfully', {

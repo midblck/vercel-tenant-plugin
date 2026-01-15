@@ -139,8 +139,40 @@ export const syncDeployments: PayloadHandler = async (req) => {
       }
 
       // Get deployments from Vercel (only 1 latest)
-      const result = await vercel.deployments.getDeployments({ limit: 1, projectId, teamId })
-      const deployments = result?.deployments || []
+      let deployments: any[] = []
+      try {
+        const result = await vercel.deployments.getDeployments({ limit: 1, projectId, teamId })
+        deployments = result?.deployments || []
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        const statusCode = (error as any)?.statusCode
+        const code = (error as any)?.error?.code
+
+        const isNotFound =
+          statusCode === 404 ||
+          code === 'not_found' ||
+          errorMessage.toLowerCase().includes('not found')
+
+        if (isNotFound) {
+          void logger.warn(`Skipping tenant ${tenant.name} - project not found on Vercel`, {
+            projectId,
+            teamId,
+            tenantId: tenant.id,
+          })
+          syncResults.push({
+            message: `Skipped syncing deployments for "${tenant.name}" (project not found)`,
+            projectId,
+            projectName: tenant.name,
+            reason: 'project-not-found',
+            status: 'skipped',
+            tenantId: tenant.id,
+          })
+          continue
+        }
+
+        // Re-throw other errors
+        throw error
+      }
 
       let syncedCount = 0
       let updatedCount = 0

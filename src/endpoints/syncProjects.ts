@@ -13,17 +13,21 @@ import { createNewTenantData, updateExistingTenantData } from '../utils/vercelDa
 
 export const syncProjects: PayloadHandler = async (req) => {
   try {
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { teamId, vercelToken, source, isValid } = await getVercelCredentialsForTenant(
-      req.payload,
-    )
+    // Get base credentials (active global or env fallback)
 
-    void logger.info(`Using credentials for project sync`, {
-      source: source,
-      isValid: isValid,
+    const {
+      teamId: baseTeamId,
+      vercelToken: baseToken,
+      source: baseSource,
+      isValid: baseValid,
+    } = await getVercelCredentialsForTenant(req.payload)
+
+    void logger.info(`Using base credentials for project list`, {
+      isValid: baseValid,
+      source: baseSource,
     })
 
-    const result = await getVercelProjects({ teamId, vercelToken })
+    const result = await getVercelProjects({ teamId: baseTeamId, vercelToken: baseToken })
 
     if (!result.success || !result.data) {
       return Response.json(
@@ -69,8 +73,25 @@ export const syncProjects: PayloadHandler = async (req) => {
 
           // Always update existing tenants with fresh data from Vercel
           try {
-            // Fetch domains for this project
-            const domainsResult = await getProjectDomains({ teamId, vercelToken }, project.id)
+            // Resolve credentials for this tenant (override if present)
+
+            const {
+              teamId: tenantTeamId,
+              vercelToken: tenantToken,
+              source: tenantSource,
+            } = await getVercelCredentialsForTenant(payload, String(existingTenantDoc.id))
+
+            void logger.info(`Using credentials for existing tenant sync`, {
+              source: tenantSource,
+              tenantId: existingTenantDoc.id,
+              tenantName: existingTenantDoc.name,
+            })
+
+            // Fetch domains for this project with tenant-aware credentials
+            const domainsResult = await getProjectDomains(
+              { teamId: tenantTeamId, vercelToken: tenantToken },
+              project.id,
+            )
             const projectDomains = domainsResult.success ? domainsResult.data : null
 
             // Ensure projectDomains is an array and extract the domains property
@@ -131,7 +152,10 @@ export const syncProjects: PayloadHandler = async (req) => {
         }
 
         // Fetch domains for new tenant creation
-        const domainsResult = await getProjectDomains({ teamId, vercelToken }, project.id)
+        const domainsResult = await getProjectDomains(
+          { teamId: baseTeamId, vercelToken: baseToken },
+          project.id,
+        )
         const projectDomains = domainsResult.success ? domainsResult.data : null
 
         // Ensure projectDomains is an array and extract the domains property
@@ -144,7 +168,7 @@ export const syncProjects: PayloadHandler = async (req) => {
         // Create tenant data with comprehensive Vercel data mapping
         let tenantData
         try {
-          tenantData = createNewTenantData(project, domainsArray, teamId)
+          tenantData = createNewTenantData(project, domainsArray, baseTeamId)
         } catch (dataError) {
           void logger.error(
             `Error creating tenant data for project ${project.name}:`,

@@ -22,6 +22,7 @@ export const tenantCollection: CollectionConfig = {
   admin: {
     defaultColumns: [
       'name',
+      'vercelProjectGitRepository',
       'vercelProjectUrl',
       'isActive',
       'status',
