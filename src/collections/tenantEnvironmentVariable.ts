@@ -183,6 +183,14 @@ export const tenantEnvironmentVariableCollection: CollectionConfig = {
         },
         {
           type: 'plain',
+          comment: 'Hide collections',
+          isEncrypted: false,
+          key: 'HIDE_COLLECTIONS',
+          targets: [{ target: 'production' }, { target: 'preview' }, { target: 'development' }],
+          value: process.env.HIDE_COLLECTIONS ?? 'templates,branches,discounts,products',
+        },
+        {
+          type: 'plain',
           comment: 'Disable MID block limit enforcement',
           isEncrypted: false,
           key: 'MID_BLOCK_LIMIT',
