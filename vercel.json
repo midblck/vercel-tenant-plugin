@@ -1,0 +1,24 @@
+{
+  "buildCommand": "cd dev && npm run build",
+  "outputDirectory": "dev/.next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "functions": {
+    "dev/app/api/**/*.ts": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
